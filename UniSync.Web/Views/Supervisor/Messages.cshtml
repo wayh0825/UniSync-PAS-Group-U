@@ -1,0 +1,285 @@
+@model UniSync.Web.ViewModels.MessagesPageViewModel
+@{
+    ViewData["Title"] = "Messages";
+    Layout = "_Layout";
+
+    var activeName = string.IsNullOrWhiteSpace(Model.ActiveContactName) ? "No Selection" : Model.ActiveContactName;
+    var supervisorInitial = !string.IsNullOrWhiteSpace(Model.CurrentUserName) ? Model.CurrentUserName.Substring(0, 1).ToUpperInvariant() : "M";
+}
+
+<div class="h-[calc(100vh-180px)] flex gap-6 animate-fade-in-up">
+    <!-- Contact Roster: Intelligence Nodes -->
+    <div class="w-80 glass-panel rounded-[2.5rem] flex flex-col overflow-hidden border-white/5 shadow-2xl">
+        <div class="p-8 border-b border-white/5 bg-white/[0.02]">
+            <div class="flex items-center justify-between mb-1">
+                <h2 class="text-lg font-black text-white font-headline tracking-tight">Intelligence</h2>
+                <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[8px] font-black text-emerald-500 uppercase tracking-widest">Nodes</span>
+            </div>
+            <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em]">Linked Research Network</p>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-2">
+            @if (Model.Contacts.Any())
+            {
+                foreach (var contact in Model.Contacts)
+                {
+                    var isActive = Model.ActiveContactId == contact.UserId;
+                    <a asp-action="Messages" asp-route-contactId="@contact.UserId"
+                       class="group flex items-center gap-4 p-4 rounded-[1.5rem] transition-all duration-300 relative overflow-hidden @(isActive ? "bg-emerald-600/10 border border-emerald-500/20 shadow-lg shadow-emerald-900/10" : "hover:bg-white/[0.03] border border-transparent")">
+                        
+                        @if (isActive)
+                        {
+                            <div class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-emerald-500 rounded-r-full shadow-[0_0_15px_#10b981]"></div>
+                        }
+
+                        <div class="relative">
+                            <div class="w-11 h-11 rounded-2xl @(isActive ? "bg-emerald-600 shadow-lg shadow-emerald-600/20" : "bg-slate-800 border border-white/5 group-hover:border-emerald-500/30") flex items-center justify-center font-black text-sm @(isActive ? "text-white" : "text-slate-400") transition-all duration-300">
+                                @(contact.FullName.Substring(0, 1).ToUpperInvariant())
+                            </div>
+                            @if (contact.HasUnreadMessages)
+                            {
+                                <span class="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-[#1e293b] animate-pulse"></span>
+                            }
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                            <h4 class="text-[13px] font-bold @(isActive ? "text-white" : "text-slate-300 group-hover:text-white") truncate transition-colors">@contact.FullName</h4>
+                            <p class="text-[9px] font-black @(isActive ? "text-emerald-400" : "text-slate-500") uppercase tracking-wider truncate">Research Associate</p>
+                        </div>
+
+                        @if (isActive)
+                        {
+                            <span class="material-symbols-outlined text-emerald-500 text-sm animate-pulse">lens</span>
+                        }
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="p-12 text-center">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-800/50 flex items-center justify-center mx-auto mb-4 border border-white/5">
+                        <span class="material-symbols-outlined text-slate-500">sensors_off</span>
+                    </div>
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-relaxed">No linked nodes found</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Communication Hub -->
+    <div class="flex-1 glass-panel rounded-[2.5rem] flex flex-col overflow-hidden relative border-white/5 shadow-2xl">
+        <div class="p-8 border-b border-white/5 flex justify-between items-center bg-white/[0.03] backdrop-blur-md">
+            <div class="flex items-center gap-5">
+                <div class="relative">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white flex items-center justify-center font-black text-xl shadow-xl shadow-emerald-900/20">
+                        @(activeName.Length > 0 ? activeName.Substring(0, 1).ToUpperInvariant() : "?")
+                    </div>
+                    <div class="absolute -bottom-1 -right-1 w-5 h-5 rounded-lg bg-[#0b1120] border-2 border-[#1e293b] flex items-center justify-center">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]"></span>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-xl font-black text-white font-headline tracking-tight">@activeName</h3>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <span class="text-[9px] font-black text-emerald-500 uppercase tracking-[0.2em] px-2 py-0.5 bg-emerald-500/10 rounded-md border border-emerald-500/20">Active Node</span>
+                        <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                        <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Secure Uplink Protocol</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <!-- Action buttons removed for minimalist interface -->
+            </div>
+        </div>
+
+        <!-- Chat Stream -->
+        <div id="message-stream" class="flex-1 overflow-y-auto px-8 lg:px-12 pt-8 lg:pt-12 space-y-8 custom-scrollbar bg-gradient-to-b from-transparent to-black/20 relative z-0">
+            @if (Model.Messages.Any())
+            {
+                foreach (var message in Model.Messages)
+                {
+                    if (message.IsMine)
+                    {
+                        <div class="flex flex-col items-end gap-3 max-w-[75%] ml-auto group">
+                            <div class="relative">
+                                <div class="bg-gradient-to-br from-emerald-500 to-emerald-700 p-5 px-8 rounded-[2.2rem] rounded-tr-sm shadow-2xl shadow-emerald-950/40 text-white relative z-10 border border-white/10">
+                                    <p class="text-[14px] font-bold leading-relaxed tracking-wide !text-white">@message.Content</p>
+                                </div>
+                                <div class="absolute -inset-0.5 bg-emerald-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-[2.2rem]"></div>
+                            </div>
+                            <div class="flex items-center gap-2 mr-4">
+                                <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Protocol Sync</span>
+                                <span class="w-1 h-1 rounded-full bg-emerald-500/50"></span>
+                                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">@message.SentAt.ToLocalTime().ToString("hh:mm tt")</span>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="flex flex-col items-start gap-3 max-w-[75%] group">
+                            <div class="relative">
+                                <div class="bg-white/[0.08] border border-white/10 backdrop-blur-2xl p-5 px-8 rounded-[2.2rem] rounded-tl-sm shadow-2xl shadow-black/40 text-slate-50 relative z-10 hover:bg-white/[0.12] transition-colors duration-300">
+                                    <p class="text-[14px] font-bold leading-relaxed tracking-wide">@message.Content</p>
+                                </div>
+                                <div class="absolute -inset-0.5 bg-white/5 blur-lg opacity-0 group-hover:opacity-100 transition-opacity rounded-[2.2rem]"></div>
+                            </div>
+                            <div class="flex items-center gap-2 ml-4">
+                                <span class="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Inbound Signal</span>
+                                <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                                <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">@message.SentAt.ToLocalTime().ToString("hh:mm tt")</span>
+                            </div>
+                        </div>
+                    }
+                }
+            }
+            else
+            {
+                <div class="h-full flex flex-col items-center justify-center text-center opacity-40">
+                    <div class="w-24 h-24 rounded-full bg-emerald-500/5 flex items-center justify-center mb-6 animate-pulse">
+                        <span class="material-symbols-outlined text-7xl text-emerald-500/20">lock</span>
+                    </div>
+                    <h4 class="text-sm font-black text-slate-300 uppercase tracking-[0.3em] mb-2">Secure Channel Initialized</h4>
+                    <p class="text-[10px] font-black text-slate-600 uppercase tracking-[0.2em]">End-to-end encrypted session active</p>
+                </div>
+            }
+
+            <!-- Dedicated Spatial Buffer to prevent content overlap -->
+            <div id="chat-spacer" class="h-40 pointer-events-none"></div>
+        </div>
+
+        <!-- Input Command Bar -->
+        @if (!string.IsNullOrWhiteSpace(Model.ActiveContactId))
+        {
+            <div class="absolute bottom-6 left-6 right-6 lg:bottom-10 lg:left-10 lg:right-10 z-50">
+                <form id="message-form" asp-action="SendMessage" method="post" class="bg-slate-900/80 backdrop-blur-2xl p-2.5 pl-8 rounded-[2rem] border border-white/10 shadow-[0_30px_90px_rgba(0,0,0,0.8)] flex items-center gap-4 group focus-within:border-emerald-500/40 transition-all duration-500">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="recipientId" value="@Model.ActiveContactId" />
+                    <input type="text" name="content" maxlength="2000" id="msg-input" required placeholder="Transmit command or feedback to @activeName..." 
+                           class="flex-1 bg-transparent border-none focus:ring-0 outline-none text-sm font-bold text-white placeholder:text-slate-500 py-4" />
+                    
+                    <div class="flex items-center gap-2 pr-1.5">
+                        <button class="h-12 px-6 rounded-full bg-emerald-600 text-white hover:bg-emerald-500 transition-all flex items-center gap-2 shrink-0 shadow-lg shadow-emerald-900/20 group-hover:scale-105 active:scale-95" type="submit">
+                            <span class="text-[11px] font-black uppercase tracking-widest hidden md:block !text-white">Send</span>
+                            <span class="material-symbols-outlined text-lg !text-white">send</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 20px; }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.2); }
+        
+        @@keyframes slideInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: slideInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+    </style>
+    <script>
+        (() => {
+            const stream = document.getElementById('message-stream');
+            const msgForm = document.getElementById('message-form');
+            const spacer = document.getElementById('chat-spacer');
+            const activeContactId = "@Model.ActiveContactId";
+            const currentUserId = "@Model.CurrentUserId";
+
+            const scrollToBottom = () => {
+                if(stream) {
+                    stream.scrollTo({
+                        top: stream.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }
+            };
+
+            // Initial Scroll
+            setTimeout(scrollToBottom, 100);
+
+            // Intercept form submission
+            if (msgForm) {
+                msgForm.onsubmit = async (e) => {
+                    e.preventDefault();
+                    const input = msgForm.querySelector('input[name="content"]');
+                    const content = input.value.trim();
+                    if (!content) return;
+
+                    const formData = new FormData(msgForm);
+                    input.value = '';
+
+                    try {
+                        const response = await fetch(msgForm.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                        });
+                        const result = await response.json();
+                        if (result.success) {
+                            appendMessage(currentUserId, result.senderName, result.content, result.sentAt, true);
+                        }
+                    } catch (err) {
+                        console.error("Transmission failure:", err);
+                    }
+                };
+            }
+
+            // SignalR Reception
+            if (window.signalConnection) {
+                signalConnection.on("ReceiveMessage", (senderId, senderName, content, sentAt) => {
+                    if (senderId === activeContactId) {
+                        appendMessage(senderId, senderName, content, sentAt, false);
+                    }
+                });
+            }
+
+            function appendMessage(senderId, senderName, content, sentAt, isMine) {
+                const msgDiv = document.createElement('div');
+                msgDiv.className = `flex flex-col ${isMine ? 'items-end ml-auto' : 'items-start'} gap-3 max-w-[75%] animate-fade-in-up group`;
+                
+                const html = isMine ? `
+                    <div class="relative">
+                        <div class="bg-gradient-to-br from-emerald-500 to-emerald-700 p-5 px-8 rounded-[2.2rem] rounded-tr-sm shadow-2xl shadow-emerald-950/40 text-white relative z-10 border border-white/10">
+                            <p class="text-[14px] font-bold leading-relaxed tracking-wide !text-white">${content}</p>
+                        </div>
+                        <div class="absolute -inset-0.5 bg-emerald-400/20 blur-xl opacity-0 group-hover:opacity-100 transition-opacity rounded-[2.2rem]"></div>
+                    </div>
+                    <div class="flex items-center gap-2 mr-4">
+                        <span class="text-[8px] font-black text-slate-500 uppercase tracking-widest">Protocol Sync</span>
+                        <span class="w-1 h-1 rounded-full bg-emerald-500/50"></span>
+                        <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">${sentAt}</span>
+                    </div>
+                ` : `
+                    <div class="relative">
+                        <div class="bg-white/[0.08] border border-white/10 backdrop-blur-2xl p-5 px-8 rounded-[2.2rem] rounded-tl-sm shadow-2xl shadow-black/40 text-slate-50 relative z-10 hover:bg-white/[0.12] transition-colors duration-300">
+                            <p class="text-[14px] font-bold leading-relaxed tracking-wide">${content}</p>
+                        </div>
+                        <div class="absolute -inset-0.5 bg-white/5 blur-lg opacity-0 group-hover:opacity-100 transition-opacity rounded-[2.2rem]"></div>
+                    </div>
+                    <div class="flex items-center gap-2 ml-4">
+                        <span class="text-[8px] font-black text-emerald-500 uppercase tracking-widest">Inbound Signal</span>
+                        <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                        <span class="text-[8px] font-black text-slate-400 uppercase tracking-widest">${sentAt}</span>
+                    </div>
+                `;
+                
+                msgDiv.innerHTML = html;
+                
+                // Insert before spacer if it exists, otherwise append
+                if (spacer) {
+                    stream.insertBefore(msgDiv, spacer);
+                } else {
+                    stream.appendChild(msgDiv);
+                }
+                
+                setTimeout(scrollToBottom, 50);
+            }
+        })();
+    </script>
+}
