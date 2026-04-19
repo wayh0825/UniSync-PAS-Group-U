@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="UniSync.Core/UniSync.Core.csproj" />
+  <Project Path="UniSync.Tests/UniSync.Tests.csproj" />
+  <Project Path="UniSync.Web/UniSync.Web.csproj" />
+</Solution>
