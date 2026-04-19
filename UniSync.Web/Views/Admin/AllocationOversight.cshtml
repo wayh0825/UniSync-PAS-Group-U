@@ -1,0 +1,133 @@
+@model IEnumerable<UniSync.Core.Entities.ResearchSubmission>
+
+@{
+    ViewData["Title"] = "Allocations";
+    Layout = "_AdminLayout";
+}
+
+<div class="space-y-10 pb-20 animate-fade-in-up">
+
+    <!-- Header Architecture -->
+    <header class="glass-panel p-10 lg:p-12 rounded-[3.5rem] relative overflow-hidden group mb-10">
+        <div class="absolute -right-20 -top-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-[120px] group-hover:bg-emerald-400/30 transition-all duration-700"></div>
+        <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-blue-400/10 rounded-full blur-[100px] group-hover:bg-blue-400/20 transition-all duration-700"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <p class="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-2">Project Workflow</p>
+                <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight tracking-tight">
+                    Project <span class="text-emerald-600">Allocations</span>
+                </h1>
+                <p class="text-lg font-medium text-slate-500 max-w-2xl mt-4">
+                    Manage project assignments and monitor supervisor workloads.
+                </p>
+            </div>
+            
+            <form id="auraAssignForm" asp-action="BulkAssignPending" method="post" class="hidden"></form>
+            <button type="button" onclick="document.getElementById('auraModal').classList.remove('hidden')" class="px-8 py-4 rounded-2xl bg-emerald-500 text-slate-950 text-xs font-black uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2 hover:-translate-y-1">
+                <span class="material-symbols-outlined text-[20px]">electric_bolt</span>
+                Aura AI Assign
+            </button>
+        </div>
+    </header>
+
+    <!-- Top Stats Row -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div class="glass-card p-8 rounded-[2rem] text-center hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 shadow-md backdrop-blur-xl border border-slate-700/50 bg-slate-900/40">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Projects</p>
+            <p class="text-4xl font-black text-white font-headline">@ViewBag.TotalProjects</p>
+        </div>
+        <div class="glass-card p-8 rounded-[2rem] text-center hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 shadow-md backdrop-blur-xl border border-slate-700/50 bg-emerald-950/20">
+            <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Assigned Projects</p>
+            <p class="text-4xl font-black text-white font-headline">@ViewBag.LinkedProjects</p>
+        </div>
+        <div class="glass-card p-8 rounded-[2rem] text-center hover:-translate-y-2 hover:shadow-2xl transition-all duration-300 shadow-md backdrop-blur-xl border border-slate-700/50 bg-slate-900/40">
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Unassigned Projects</p>
+            <p class="text-4xl font-black text-slate-300 font-headline">@ViewBag.PendingProjects</p>
+        </div>
+        <div class="p-8 rounded-[2rem] text-center transition-all bg-slate-900 hover:-translate-y-2 shadow-xl shadow-slate-900/20 group relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+            <p class="text-[10px] font-black text-emerald-400 uppercase tracking-widest mb-1 relative z-10">Deadline</p>
+            <p class="text-xl font-black text-white font-headline relative z-10">@ViewBag.FinalDeadline</p>
+        </div>
+    </div>
+
+    <!-- Registry Table -->
+    <section class="glass-panel rounded-[2.5rem] overflow-hidden bg-slate-900/40 border border-slate-700/50 backdrop-blur-xl">
+        <div class="p-8 border-b border-slate-700/50 flex justify-between items-center bg-slate-900/60">
+            <h3 class="text-xl font-black text-white font-headline">Allocations List</h3>
+            <a href="/Admin/ExportAllocations" target="_blank" class="px-5 py-2.5 rounded-xl bg-slate-800 text-white text-[11px] font-black uppercase tracking-widest hover:bg-slate-700 transition-all shadow-sm flex items-center gap-2 border border-slate-600">
+                <span class="material-symbols-outlined text-[16px]">download</span>
+                Export CSV
+            </a>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-slate-950/40 border-b border-slate-700/50">
+                        <th class="py-5 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Project Title</th>
+                        <th class="py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Student</th>
+                        <th class="py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Supervisor</th>
+                        <th class="py-5 px-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/30">
+                    @foreach (var p in Model.Take(10))
+                    {
+                        <tr class="hover:bg-slate-800/30 transition-all cursor-pointer" onclick="window.location.href='@Url.Action("ManageSubmissionEntry", "Admin", new { id = p.Id })'">
+                            <td class="py-6 px-8">
+                                <p class="text-sm font-black text-white">@p.Title</p>
+                                <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-widest mt-1">@p.ExpertiseDomain?.Name</p>
+                            </td>
+                            <td class="py-6 px-6">
+                                <div class="flex items-center gap-3">
+                                    <img src="https://ui-avatars.com/api/?name=@(p.Submitter?.FullName ?? "User")&background=10b981&color=fff" class="w-8 h-8 rounded-lg outline outline-2 outline-slate-800" />
+                                    <span class="text-sm font-bold text-slate-300">@p.Submitter?.FullName</span>
+                                </div>
+                            </td>
+                            <td class="py-6 px-6">
+                                @if(p.Status == UniSync.Core.Enums.SubmissionStatus.Linked)
+                                {
+                                    <span class="text-sm font-bold text-white underline decoration-emerald-500 decoration-2 underline-offset-4">@p.LinkedSupervisor?.FullName</span>
+                                }
+                                else
+                                {
+                                    <span class="text-xs font-bold text-slate-500 italic">Unassigned</span>
+                                }
+                            </td>
+                            <td class="py-6 px-6">
+                                <span class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border @(p.Status == UniSync.Core.Enums.SubmissionStatus.Linked ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : "bg-slate-800 text-slate-500 border-slate-700")">
+                                    @p.Status
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</div>
+
+@section Modals {
+    <div id="auraModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center pointer-events-auto">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onclick="document.getElementById('auraModal').classList.add('hidden')"></div>
+        <div class="glass-panel w-full max-w-md p-10 rounded-[2.5rem] relative z-10 border border-slate-700/50 bg-slate-900 shadow-2xl animate-toast-slide text-center">
+            <div class="w-20 h-20 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-emerald-500/20">
+                <span class="material-symbols-outlined text-[40px]">electric_bolt</span>
+            </div>
+            <h3 class="text-2xl font-headline font-black text-white mb-2">Engage Aura AI?</h3>
+            <p class="text-[13px] font-medium text-slate-400 mb-8 leading-relaxed">
+                This will automatically analyze the dataset and assign supervisors based on exact tech stack heuristics and workload limits.
+            </p>
+            <div class="flex gap-4">
+                <button type="button" onclick="document.getElementById('auraModal').classList.add('hidden')" class="flex-1 px-4 py-3.5 bg-slate-800 text-white font-bold rounded-xl text-sm hover:bg-slate-700 transition-colors">
+                    Cancel Action
+                </button>
+                <button type="button" onclick="document.getElementById('auraAssignForm').submit()" class="flex-1 px-4 py-3.5 bg-emerald-500 text-slate-900 font-black rounded-xl text-sm shadow-lg shadow-emerald-500/20 hover:bg-emerald-400 transition-colors">
+                    Execute Run
+                </button>
+            </div>
+        </div>
+    </div>
+}
