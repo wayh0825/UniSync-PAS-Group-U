@@ -1,0 +1,228 @@
+@model UniSync.Core.Entities.ResearchSubmission
+
+@{
+    ViewData["Title"] = "Manage Submission Allocation";
+    Layout = "_AdminLayout";
+
+    var supervisors = ViewBag.Supervisors as IEnumerable<UniSync.Core.Entities.ApplicationUser> ?? Enumerable.Empty<UniSync.Core.Entities.ApplicationUser>();
+    var successMessage = TempData["SuccessMessage"] as string;
+    var errorMessage = TempData["Error"] as string;
+
+    var statusClass = Model.Status switch
+    {
+        UniSync.Core.Enums.SubmissionStatus.Linked => "bg-emerald-900/30 text-emerald-400 border-emerald-500/30",
+        UniSync.Core.Enums.SubmissionStatus.UnderReview => "bg-blue-900/30 text-blue-400 border-blue-500/30",
+        UniSync.Core.Enums.SubmissionStatus.Pending => "bg-amber-900/30 text-amber-400 border-amber-500/30",
+        _ => "bg-slate-800 text-slate-400 border-slate-700"
+    };
+}
+
+<div class="space-y-8 mt-6 pb-20 animate-fade-in-up">
+
+
+    <!-- Header Architecture -->
+    <header class="glass-panel p-10 lg:p-12 rounded-[3.5rem] relative overflow-hidden group mb-10">
+        <div class="absolute -right-20 -top-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-[120px] group-hover:bg-emerald-400/30 transition-all duration-700"></div>
+        <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-blue-400/10 rounded-full blur-[100px] group-hover:bg-blue-400/20 transition-all duration-700"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row md:items-start justify-between gap-6">
+            <div>
+                <p class="text-[11px] uppercase tracking-[0.2em] font-black text-emerald-600 mb-2">Academic Authority</p>
+                <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight tracking-tight mb-2">Manage Allocation</h1>
+                <p class="text-[13px] md:text-[14px] font-semibold text-slate-500 mt-4 max-w-xl">
+                    Reference: AL-@Model.SubmissionDate.ToString("yyyy")-@Model.Id.ToString("D3")
+                </p>
+            </div>
+            <span class="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest border @statusClass shadow-sm">
+                <span class="w-2 h-2 rounded-full bg-current"></span>
+                @Model.Status
+            </span>
+        </div>
+
+        <a asp-controller="ModuleLeader" asp-action="AllocationOversight" class="relative z-10 mt-8 inline-flex items-center gap-2 px-6 py-3 rounded-2xl border border-slate-700/50 bg-slate-900/50 text-white font-bold hover:bg-slate-800 transition-colors shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+            Back to Allocations
+        </a>
+    </header>
+
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div class="xl:col-span-2 space-y-6">
+            <div class="glass-card rounded-[2.5rem] p-8 md:p-10 space-y-8 hover:-translate-y-1 transition-all duration-300">
+                <div>
+                    <h2 class="text-[28px] md:text-[32px] font-headline font-black text-slate-900 leading-tight">@Model.Title</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-900/40 rounded-[2rem] p-6 border border-slate-700/50">
+                        <p class="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-2">Student Presenter</p>
+                        <p class="text-[15px] font-black text-white">@(Model.Submitter?.FullName ?? "Unknown")</p>
+                        <p class="text-[13px] font-semibold text-emerald-500 mt-1 uppercase tracking-widest">@(Model.Submitter?.Email)</p>
+                    </div>
+                    <div class="bg-slate-900/40 rounded-[2rem] p-6 border border-slate-700/50">
+                        <p class="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-2">Research Area</p>
+                        <p class="text-[15px] font-black text-white">@(Model.ExpertiseDomain?.Name ?? "General Research")</p>
+                    </div>
+                </div>
+
+                @if (Model.IsGroupProject && Model.GroupMembers != null && Model.GroupMembers.Any())
+                {
+                    <section class="space-y-4 pt-6 border-t border-slate-700/50">
+                        <h3 class="text-[15px] font-black text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-emerald-500 text-[20px]">group</span>
+                            Group Members
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            @foreach (var member in Model.GroupMembers)
+                            {
+                                <div class="bg-slate-900/40 rounded-2xl p-5 border border-slate-700/50 shadow-sm">
+                                    <p class="text-[14px] font-black text-white">@member.FullName</p>
+                                    <p class="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-widest">@member.StudentIdIdentifier • @member.Email</p>
+                                </div>
+                            }
+                        </div>
+                    </section>
+                }
+
+                <section class="space-y-4 pt-6 border-t border-slate-700/50">
+                    <h3 class="text-[15px] font-black text-white">Executive Summary</h3>
+                    <p class="text-[14px] leading-relaxed text-slate-400 whitespace-pre-line bg-slate-900/40 p-6 rounded-[2rem] border border-slate-700/50 text-justify">@Model.ExecutiveSummary</p>
+                </section>
+                
+                @if(!string.IsNullOrWhiteSpace(Model.TechStack))
+                {
+                    <section class="space-y-3 pt-6 border-t border-slate-700/50">
+                        <h3 class="text-[15px] font-black text-white">Tech Stack</h3>
+                        <p class="text-[14px] font-semibold text-emerald-600 uppercase tracking-widest">@Model.TechStack</p>
+                    </section>
+                }
+            </div>
+        </div>
+
+        <div class="xl:col-span-1">
+            <div class="glass-panel p-8 rounded-[2.5rem] relative overflow-hidden xl:sticky xl:top-6">
+                <div class="flex items-center gap-4 mb-8">
+                    <div class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-slate-900/20">
+                        <span class="material-symbols-outlined text-[24px]">admin_panel_settings</span>
+                    </div>
+                    <h2 class="text-[20px] font-headline font-black text-slate-900">Allocation Actions</h2>
+                </div>
+
+                @if (Model.Status == UniSync.Core.Enums.SubmissionStatus.Linked)
+                {
+                    <div class="rounded-[2rem] border border-emerald-500/20 bg-emerald-900/20 p-6 mb-6 shadow-sm">
+                        <p class="text-[11px] font-black uppercase tracking-[0.14em] text-emerald-500">Linked Supervisor</p>
+                        <div class="flex items-center gap-4 mt-4">
+                            <div class="w-12 h-12 bg-slate-900 rounded-[1.2rem] flex items-center justify-center text-[18px] font-black text-emerald-500 shadow-sm border border-emerald-500/30">
+                                @(Model.LinkedSupervisor?.FullName?.Substring(0, 1) ?? "S")
+                            </div>
+                            <div>
+                                <p class="text-[15px] font-black text-white">@(Model.LinkedSupervisor?.FullName ?? "Unknown")</p>
+                                <p class="text-[11px] uppercase tracking-widest font-bold text-slate-400 mt-1">@(Model.LinkedSupervisor?.Email)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-6 border border-red-500/20 bg-red-900/20 rounded-[2rem] space-y-5">
+                        <h4 class="text-[14px] font-black text-red-500 flex items-center gap-2">
+                            <span class="material-symbols-outlined text-[20px]">warning</span> Break Link
+                        </h4>
+                        <p class="text-[13px] font-semibold text-red-400/80 leading-relaxed">
+                            Breaking this link will reset the submission status to pending and remove the assigned supervisor.
+                        </p>
+                        <form id="breakLinkForm" asp-controller="ModuleLeader" asp-action="BreakLink" asp-route-id="@Model.Id" method="post">
+                            <button type="button" onclick="openBreakLinkModal()" class="w-full bg-red-600 hover:bg-red-500 text-white font-black text-[11px] uppercase tracking-widest px-4 py-4 rounded-2xl shadow-lg shadow-red-500/20 transition-all flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">electric_bolt</span>
+                                Force Break Link
+                            </button>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="p-6 border border-slate-700/50 bg-slate-900/40 rounded-[2rem] space-y-5">
+                        <h4 class="text-[14px] font-black text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined text-emerald-500 text-[20px]">published_with_changes</span> Manual Assignment
+                        </h4>
+                        <p class="text-[12px] font-semibold text-slate-400 leading-relaxed">
+                            Assign clinical or priority projects to specific supervisors directly, overriding the standard link request process.
+                        </p>
+
+                        <form asp-controller="ModuleLeader" asp-action="ForceLink" asp-route-id="@Model.Id" method="post" class="space-y-5">
+                            <div>
+                                <label for="supervisorId" class="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-3">Select Supervisor</label>
+                                <select id="supervisorId" name="supervisorId" class="w-full rounded-2xl border border-slate-700/50 bg-slate-950 p-4 text-[13px] font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 shadow-sm appearance-none cursor-pointer placeholder-slate-500" required>
+                                    <option value="" class="text-slate-500">-- Choose Supervisor --</option>
+                                    @foreach (var sup in supervisors)
+                                    {
+                                        <option value="@sup.Id">@sup.FullName (@sup.Email)</option>
+                                    }
+                                </select>
+                            </div>
+                            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] uppercase tracking-widest px-4 py-4 rounded-2xl shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                                Force Assign
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Modals {
+<div id="breakLinkModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center pointer-events-none">
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300" id="modalBackdrop" onclick="closeBreakLinkModal()"></div>
+    <div class="glass-card w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl relative translate-y-8 opacity-0 transition-all duration-300 pointer-events-auto border border-red-500/30">
+        <div class="w-16 h-16 bg-red-900/20 rounded-full flex items-center justify-center mb-6 shadow-inner text-red-500 mx-auto">
+            <span class="material-symbols-outlined text-3xl">warning</span>
+        </div>
+        
+        <h3 class="text-2xl font-black text-white font-headline text-center mb-3">Break Allocation Link?</h3>
+        <p class="text-[13px] font-medium text-slate-500 text-center mb-8">
+            This action will disconnect the supervisor from this project and reset it to 'Pending'. This cannot be undone automatically.
+        </p>
+        
+        <div class="flex gap-4 w-full">
+            <button type="button" onclick="closeBreakLinkModal()" class="flex-1 px-6 py-3.5 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 shadow-lg shadow-slate-900/20 transition-all">Cancel</button>
+            <button type="button" onclick="submitBreakLinkForm()" class="flex-1 px-6 py-3.5 rounded-xl bg-red-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-red-500 shadow-lg shadow-red-600/20 transition-all">Confirm Break</button>
+        </div>
+    </div>
+</div>
+}
+
+<script>
+    function openBreakLinkModal() {
+        const modal = document.getElementById('breakLinkModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const content = modal.querySelector('.glass-card');
+        
+        modal.classList.remove('hidden');
+        
+        setTimeout(() => {
+            backdrop.classList.remove('opacity-0');
+            backdrop.classList.add('opacity-100');
+            content.classList.remove('translate-y-8', 'opacity-0');
+            content.classList.add('translate-y-0', 'opacity-100');
+        }, 10);
+    }
+
+    function closeBreakLinkModal() {
+        const modal = document.getElementById('breakLinkModal');
+        const backdrop = document.getElementById('modalBackdrop');
+        const content = modal.querySelector('.glass-card');
+        
+        backdrop.classList.remove('opacity-100');
+        backdrop.classList.add('opacity-0');
+        content.classList.remove('translate-y-0', 'opacity-100');
+        content.classList.add('translate-y-8', 'opacity-0');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+    
+    function submitBreakLinkForm() {
+        document.getElementById('breakLinkForm').submit();
+    }
+</script>
