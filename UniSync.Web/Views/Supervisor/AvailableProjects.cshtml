@@ -1,0 +1,191 @@
+@model UniSync.Web.ViewModels.AvailableProjectsViewModel
+
+@{
+    ViewData["Title"] = "Available Projects";
+    Layout = "_Layout";
+}
+
+<style>
+    .glass-card-premium {
+        background: rgba(30, 41, 59, 0.4);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 2.5rem;
+        transition: all 0.4s ease;
+    }
+
+    .glass-card-premium:hover {
+        border-color: rgba(16, 185, 129, 0.3);
+        background: rgba(30, 41, 59, 0.6);
+        transform: translateY(-5px);
+    }
+
+    .gradient-text-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .stat-pill-dark {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .score-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.75rem;
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+    }
+
+    /* Custom Scrollbar */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+</style>
+
+<div class="space-y-8 animate-fade-in-up pb-12">
+    <!-- Header Architecture - Seamless Integration -->
+    <header class="glass-card-premium p-10 md:p-14 relative overflow-hidden group">
+        <div class="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-emerald-500/5 to-transparent pointer-events-none"></div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-6">
+                <span class="h-px w-8 bg-emerald-500"></span>
+                <span class="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-400">Neutral Academic Evaluation</span>
+            </div>
+            <h1 class="text-4xl md:text-5xl font-black text-white font-headline leading-tight">
+                Blind <span class="gradient-text-emerald">Discovery Hub.</span>
+            </h1>
+            <p class="text-slate-400 text-lg md:text-xl font-medium leading-relaxed max-w-3xl mt-6">
+                Analyze research submissions awaiting faculty synchronization. Identifiers are anonymized to protect the integrity of the peer-linkage protocol.
+            </p>
+        </div>
+    </header>
+
+    <!-- Metrics Command Strip -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="stat-pill-dark group">
+            <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-500 group-hover:text-emerald-400 transition-colors">
+                <span class="material-symbols-outlined">inbox</span>
+            </div>
+            <div>
+                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Global Pending</p>
+                <p class="text-3xl font-black text-white font-headline">@Model.TotalSubmissionCount</p>
+            </div>
+        </div>
+
+        <div class="stat-pill-dark group border-emerald-500/10 bg-emerald-500/5">
+            <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-emerald-500/20 flex items-center justify-center text-emerald-400">
+                <span class="material-symbols-outlined">link</span>
+            </div>
+            <div>
+                <p class="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Active Links</p>
+                <p class="text-3xl font-black text-white font-headline">@Model.LinkedSubmissionCount</p>
+            </div>
+        </div>
+
+        <div class="stat-pill-dark group">
+            <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-500 group-hover:text-emerald-400 transition-colors">
+                <span class="material-symbols-outlined">category</span>
+            </div>
+            <div>
+                <p class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Domain Matrix</p>
+                <p class="text-3xl font-black text-white font-headline">@Model.SubmissionsByArea.Count</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Discovery Grid -->
+    <section>
+        @if (!Model.Submissions.Any())
+        {
+            <div class="glass-card-premium py-24 text-center">
+                <div class="w-20 h-20 rounded-full bg-slate-900/50 flex items-center justify-center mx-auto mb-8 border border-white/5 shadow-inner">
+                    <span class="material-symbols-outlined text-4xl text-slate-700">sensors_off</span>
+                </div>
+                <h3 class="text-2xl font-black text-white font-headline mb-4">Signal Lost.</h3>
+                <p class="text-slate-500 max-w-sm mx-auto leading-relaxed">No pending submissions match your current expertise calibration.</p>
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                @foreach (var submission in Model.Submissions.OrderByDescending(p => p.LinkScore))
+                {
+                    var scoreColor = submission.LinkScore >= 75 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : 
+                                     submission.LinkScore >= 50 ? "bg-amber-500/10 text-amber-400 border-amber-500/20" : 
+                                     "bg-slate-500/10 text-slate-400 border-slate-500/20";
+                    
+                    <article class="glass-card-premium p-8 flex flex-col group/item relative overflow-hidden">
+                        <div class="absolute inset-0 bg-emerald-500/5 translate-y-full group-hover/item:translate-y-0 transition-transform duration-700"></div>
+                        
+                        <div class="relative z-10">
+                            <div class="flex items-start justify-between mb-8">
+                                <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 text-slate-100 flex items-center justify-center text-xs font-black shadow-inner">
+                                    @submission.AnonymousId.Substring(Math.Max(0, submission.AnonymousId.Length - 2))
+                                </div>
+                                <div class="flex flex-col items-end gap-3">
+                                    <div class="score-badge border @scoreColor">
+                                        Link Index: @submission.LinkScore%
+                                    </div>
+                                    @if (!submission.HasExpressedInterest)
+                                    {
+                                        <div class="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_12px_#10b981]"></div>
+                                    }
+                                </div>
+                            </div>
+
+                            <h3 class="text-xl font-black text-white font-headline leading-tight mb-4 group-hover/item:text-emerald-400 transition-colors line-clamp-2">@submission.Title</h3>
+                            
+                            <div class="mb-6">
+                                <span class="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-widest border border-emerald-500/20">
+                                    @submission.ExpertiseDomainName
+                                </span>
+                            </div>
+
+                            <p class="text-sm font-medium text-slate-500 leading-relaxed line-clamp-3 mb-10">@submission.ExecutiveSummary</p>
+
+                            <div class="mt-auto pt-8 border-t border-white/5 flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex flex-col">
+                                        <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Interests</span>
+                                        <span class="text-xs font-bold text-slate-300">@submission.InterestCount Nodes</span>
+                                    </div>
+                                    <div class="w-px h-6 bg-white/5"></div>
+                                    <div class="flex flex-col">
+                                        <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Released</span>
+                                        <span class="text-xs font-bold text-slate-300">@submission.SubmissionDate.ToString("MMM dd")</span>
+                                    </div>
+                                </div>
+                                <a href="@Url.Action("ReviewProject", "Supervisor", new { id = submission.SubmissionId })" class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-emerald-600 hover:text-white hover:border-emerald-500 transition-all shadow-xl group/btn">
+                                    <span class="material-symbols-outlined text-xl group-hover/btn:translate-x-0.5 transition-transform">arrow_forward</span>
+                                </a>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            if (!window.signalConnection) return;
+            signalConnection.on("ReceiveSignal", (type) => {
+                if (type === "Submission" || type === "Link") {
+                    window.location.reload();
+                }
+            });
+        })();
+    </script>
+}

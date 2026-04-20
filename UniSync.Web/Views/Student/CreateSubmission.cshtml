@@ -1,0 +1,510 @@
+@model UniSync.Web.ViewModels.SubmissionSubmissionViewModel
+
+@{
+    ViewData["Title"] = "Research Entry";
+    Layout = "_Layout";
+
+    var researchAreas = ViewBag.ExpertiseDomains as IEnumerable<UniSync.Core.Entities.ExpertiseDomain> ?? Enumerable.Empty<UniSync.Core.Entities.ExpertiseDomain>();
+}
+
+<style>
+    .gradient-emerald {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    }
+    .text-gradient-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .glass-input {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(10px);
+        color: #f1f5f9 !important;
+    }
+    .glass-input:focus {
+        border-color: rgba(16, 185, 129, 0.5) !important;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.1) !important;
+    }
+    .form-section-title {
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+        letter-spacing: 0.25em;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .form-section-title::after {
+        content: "";
+        height: 1px;
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+    }
+</style>
+
+<div class="space-y-12 pb-20 animate-fade-in-up">
+    <!-- Page Header -->
+    <header class="glass-panel p-10 md:p-14 rounded-[3.5rem] relative overflow-hidden border border-slate-800/50">
+        <div class="absolute -right-20 -top-20 w-[40rem] h-[40rem] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-6 shadow-sm">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                Proposal Format v1.0
+            </div>
+            <h1 class="text-5xl md:text-6xl font-black text-slate-100 font-headline leading-none mb-8 tracking-tighter">
+                Research <span class="text-gradient-emerald">Submission Portal.</span>
+            </h1>
+            <p class="text-slate-500 font-bold text-lg max-w-4xl leading-relaxed font-headline">
+                Complete all mandatory sections to proceed. Our system performs a <span class="text-slate-200 uppercase tracking-widest text-sm">real-time blind-review check</span> 
+                to ensure full compliance with academic integrity standards.
+            </p>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-10 items-start">
+        
+        <!-- Form Container -->
+        <div class="lg:col-span-3 space-y-10">
+            <form id="submissionForm" asp-action="CreateSubmission" method="post" class="space-y-10">
+                @Html.AntiForgeryToken()
+                <input asp-for="DraftId" type="hidden" id="DraftId" />
+
+                @if(!ViewData.ModelState.IsValid) {
+                    <div asp-validation-summary="ModelOnly" class="rounded-[2.5rem] border border-red-500/20 bg-red-500/5 px-8 py-6 text-red-400 font-bold flex items-center gap-4 shadow-xl">
+                        <span class="material-symbols-outlined text-[24px]">report</span>
+                        <div class="text-sm">Incomplete or invalid data detected. Review the requirements below and correct any issues.</div>
+                    </div>
+                }
+
+                <!-- Section: Physical Identity -->
+                <div class="glass-card p-10 md:p-14 rounded-[3.5rem] border border-slate-800/50 space-y-10 bg-slate-900/10">
+                    <h3 class="form-section-title">Project Details</h3>
+                    
+                    <div class="space-y-6">
+                        <div class="space-y-3">
+                            <label asp-for="Title" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Project Title</label>
+                            <input asp-for="Title" placeholder="The theoretical framework of..." 
+                                   class="w-full glass-input rounded-2xl py-4.5 px-6 text-sm font-bold placeholder:text-slate-700" />
+                            <span asp-validation-for="Title" class="text-[10px] font-bold text-red-500 px-1"></span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-3">
+                                <label asp-for="ExpertiseDomainId" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Primary Discipline</label>
+                                <select asp-for="ExpertiseDomainId" class="w-full glass-input rounded-2xl py-4.5 px-6 text-sm font-bold appearance-none cursor-pointer" 
+                                        asp-items="@(new SelectList(researchAreas, "Id", "Name"))">
+                                    <option value="">Select Research Area...</option>
+                                </select>
+                                <span asp-validation-for="ExpertiseDomainId" class="text-[10px] font-bold text-red-500 px-1"></span>
+                            </div>
+                            <div class="space-y-3">
+                                <label asp-for="TimelineWeeks" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Expected Duration (Weeks)</label>
+                                <input asp-for="TimelineWeeks" type="number" 
+                                       class="w-full glass-input rounded-2xl py-4.5 px-6 text-sm font-bold" />
+                                <span asp-validation-for="TimelineWeeks" class="text-[10px] font-bold text-red-500 px-1"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section: Group Protocol -->
+                <div class="glass-card p-10 md:p-14 rounded-[3.5rem] border border-slate-800/50 space-y-10 bg-slate-900/20 relative overflow-hidden">
+                    <div class="absolute -right-10 -top-10 w-40 h-40 bg-emerald-500/5 rounded-full blur-3xl"></div>
+                    
+                    <div class="flex flex-col md:flex-row md:items-center gap-6 justify-between relative z-10">
+                        <div class="flex items-center gap-6">
+                            <div class="relative flex items-center">
+                                <input asp-for="IsGroupProject" type="checkbox" id="IsGroupProject" 
+                                       class="w-8 h-8 rounded-xl border-2 border-slate-700 bg-slate-900 text-emerald-500 focus:ring-emerald-500/20 transition-all cursor-pointer" />
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-black text-slate-200 font-headline mb-1">Collaborative Submission</h3>
+                                <p class="text-xs font-bold text-slate-500">Enable if the research involves multiple students.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="groupMembersSection" class="hidden space-y-6 pt-10 border-t border-slate-800/50 animate-fade-in-up">
+                        <div id="groupMembersContainer" class="space-y-4">
+                            @if (Model != null && Model.GroupMembers != null)
+                            {
+                                for (int i = 0; i < Model.GroupMembers.Count; i++)
+                                {
+                                    <div class="group-member-row grid grid-cols-1 md:grid-cols-3 gap-4 items-center bg-slate-950/40 p-5 rounded-3xl border border-slate-800 shadow-inner relative">
+                                        <input type="hidden" name="GroupMembers.Index" value="@i" />
+                                        <input asp-for="GroupMembers[i].StudentIdIdentifier" placeholder="STUDENT ID" class="bg-transparent border-none rounded-xl py-3 px-4 text-xs font-black text-slate-200 focus:ring-1 focus:ring-emerald-500/30" />
+                                        <input asp-for="GroupMembers[i].FullName" placeholder="FULL NAME" class="bg-transparent border-none rounded-xl py-3 px-4 text-xs font-black text-slate-200 focus:ring-1 focus:ring-emerald-500/30" />
+                                        <div class="flex gap-2">
+                                            <input asp-for="GroupMembers[i].Email" placeholder="UNIVERSITY EMAIL" class="w-full bg-transparent border-none rounded-xl py-3 px-4 text-xs font-black text-slate-200 focus:ring-1 focus:ring-emerald-500/30" />
+                                            <button type="button" class="remove-member-btn text-slate-700 hover:text-red-500 p-2 material-symbols-outlined transition-colors">delete</button>
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                        <button type="button" id="addMemberBtn" class="w-fit text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 hover:bg-emerald-500/20 px-8 py-4 rounded-2xl transition-all flex items-center gap-3 uppercase tracking-[0.2em] shadow-lg">
+                            <span class="material-symbols-outlined text-[18px]">group_add</span> Add Member
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Section: ExecutiveSummary -->
+                <div class="glass-card p-10 md:p-14 rounded-[3.5rem] border border-slate-800/50 space-y-10 bg-slate-900/10">
+                    <h3 class="form-section-title">Executive Summary</h3>
+                    <div class="space-y-4">
+                        <label asp-for="ExecutiveSummary" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Research Abstract (Anonymous)</label>
+                        <textarea asp-for="ExecutiveSummary" id="ExecutiveSummary" rows="8" maxlength="2000" 
+                                  placeholder="Provide a high-level summary. MANDATORY: Ensure no names or IDs are included." 
+                                  class="w-full glass-input rounded-[2rem] py-8 px-8 text-sm font-medium focus:ring-2 focus:ring-emerald-600/20 transition-all shadow-inner resize-none leading-relaxed"></textarea>
+                        <div class="flex justify-between items-center px-4">
+                            <div class="flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-slate-700" id="auditPulse"></span>
+                                <span id="blindRuleStatus" class="text-[10px] font-black text-slate-600 uppercase tracking-[0.1em]">Checking Integrity...</span>
+                            </div>
+                            <span id="abstractCounter" class="text-[10px] font-black text-slate-700 uppercase tracking-[0.2em]">0 / 2000</span>
+                        </div>
+                        <span asp-validation-for="ExecutiveSummary" class="text-[10px] font-bold text-red-500 px-1"></span>
+                    </div>
+                </div>
+
+                <!-- Bento Grid for Segments -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div class="glass-card p-10 rounded-[3rem] border border-slate-800/50 bg-slate-900/10 space-y-6">
+                        <label asp-for="ProblemStatement" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Problem Statement</label>
+                        <textarea asp-for="ProblemStatement" rows="6" class="w-full glass-input rounded-3xl py-6 px-8 text-sm font-medium resize-none leading-relaxed"></textarea>
+                    </div>
+                    <div class="glass-card p-10 rounded-[3rem] border border-slate-800/50 bg-slate-900/10 space-y-6">
+                        <label asp-for="Objectives" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Research Objectives</label>
+                        <textarea asp-for="Objectives" rows="6" class="w-full glass-input rounded-3xl py-6 px-8 text-sm font-medium resize-none leading-relaxed"></textarea>
+                    </div>
+                </div>
+
+                <!-- Methodology -->
+                <div class="glass-card p-10 md:p-14 rounded-[3.5rem] border border-slate-800/50 bg-slate-900/10 space-y-8">
+                    <label asp-for="Methodology" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Research Methodology & Approach</label>
+                    <textarea asp-for="Methodology" rows="8" class="w-full glass-input rounded-[2.5rem] py-8 px-10 text-sm font-medium resize-none leading-relaxed"></textarea>
+                </div>
+
+                <!-- Missing Fields Implementation -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                   <div class="glass-card p-10 rounded-[3rem] border border-slate-800/50 bg-slate-900/10 space-y-6">
+                        <label asp-for="ExpectedOutcomes" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Expected Outcomes</label>
+                        <textarea asp-for="ExpectedOutcomes" rows="4" class="w-full glass-input rounded-3xl py-6 px-8 text-sm font-medium resize-none leading-relaxed"></textarea>
+                    </div>
+                    <div class="glass-card p-10 rounded-[3rem] border border-slate-800/50 bg-slate-900/10 space-y-6">
+                        <label asp-for="TechStack" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Tech Stack / Tools</label>
+                        <input asp-for="TechStack" class="w-full glass-input rounded-2xl py-5 px-8 text-sm font-bold" placeholder="React, Python, AWS..." />
+                    </div>
+                </div>
+
+                <div class="glass-card p-10 rounded-[3rem] border border-slate-800/50 bg-slate-900/10 space-y-6">
+                    <label asp-for="Keywords" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1">Keywords (Comma separated)</label>
+                    <input asp-for="Keywords" class="w-full glass-input rounded-2xl py-5 px-8 text-sm font-bold" placeholder="AI, Blockchain, Ethics..." />
+                </div>
+
+                <!-- Footer Audit Protocol -->
+                <div class="glass-panel p-10 rounded-[3rem] border border-red-500/20 bg-red-500/5 flex gap-8 items-start relative overflow-hidden group">
+                    <div class="absolute inset-0 bg-red-500/5 opacity-0 group-hover:opacity-20 transition-opacity pointer-events-none"></div>
+                    <input asp-for="AgreeBlindRule" type="checkbox" 
+                           class="mt-1.5 w-8 h-8 rounded-xl border-2 border-red-900/50 bg-slate-950 text-red-500 focus:ring-red-500/20 transition-all cursor-pointer shrink-0" />
+                    <div class="space-y-3">
+                        <label asp-for="AgreeBlindRule" class="text-base font-black text-slate-200 leading-tight">I certify that no personal identification (names, IDs) is included in this submission.</label>
+                        <p class="text-xs font-bold text-red-500/60 uppercase tracking-widest">Guideline violations will lead to immediate rejection.</p>
+                        <span asp-validation-for="AgreeBlindRule" class="text-[10px] font-bold text-red-500 block"></span>
+                    </div>
+                </div>
+
+                <!-- Final Action bar -->
+                <div class="flex flex-col md:flex-row items-center justify-between gap-10 pt-10 border-t border-slate-800/50">
+                    <div class="flex items-center gap-6 w-full md:w-auto">
+                        <button id="saveDraftButton" type="button" class="w-full md:w-auto bg-slate-800/50 border border-slate-700/50 text-slate-300 font-black px-10 py-5 rounded-2xl transition-all hover:bg-slate-800 active:scale-[0.98] uppercase tracking-[0.2em] text-[11px]">
+                            Save Draft
+                        </button>
+                        <div id="draftStatus" class="text-[10px] font-black text-slate-600 uppercase tracking-widest hidden md:block italic">
+                            Progress Saved
+                        </div>
+                    </div>
+
+                    <button type="submit" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-500 text-white font-black text-lg px-16 py-6 rounded-[2rem] shadow-2xl shadow-emerald-900/30 transition-all active:scale-[0.98] flex items-center justify-center gap-4 font-headline uppercase tracking-widest text-sm">
+                        Submit Project Proposal
+                        <span class="material-symbols-outlined text-[24px]">terminal</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Progress Widget Sidebar -->
+        <aside class="space-y-10 sticky top-10">
+            <div class="glass-panel p-10 rounded-[3rem] border border-slate-800/50 bg-slate-900/20">
+                <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-8">Proposal Completion</h3>
+                <div class="relative w-full h-4 bg-slate-950 rounded-full overflow-hidden mb-6 shadow-inner">
+                    <div id="completionBar" class="h-full gradient-emerald rounded-full shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all duration-1000" style="width: 0%"></div>
+                </div>
+                <div class="flex items-center justify-between font-black text-slate-200 uppercase tracking-widest text-[11px]">
+                    <span id="completionText">0% Ready</span>
+                    <span class="text-emerald-500">Active</span>
+                </div>
+                
+                <div class="mt-12 py-8 border-t border-slate-800/50 space-y-6">
+                    <a asp-action="Guidelines" class="text-[10px] font-black text-emerald-500 flex items-center gap-3 hover:gap-4 transition-all uppercase tracking-[0.2em]">
+                        <span class="material-symbols-outlined text-base">verified</span> 
+                        Req Checklist
+                    </a>
+                </div>
+            </div>
+
+            <div class="p-10 bg-slate-950 rounded-[3rem] border border-slate-900 shadow-2xl relative overflow-hidden group">
+                <div class="absolute -right-5 -bottom-5 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-colors"></div>
+                <span class="material-symbols-outlined text-emerald-500 mb-6 text-3xl">terminal</span>
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-3">Integrity Check</p>
+                <p class="text-xs font-bold text-slate-600 leading-relaxed font-headline">Research submission performs a real-time confidentiality check. All data is stored securely.</p>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        (() => {
+            const form = document.getElementById("submissionForm");
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const draftIdInput = document.getElementById("DraftId");
+            const titleField = document.getElementById("Title");
+            const abstractField = document.getElementById("ExecutiveSummary");
+            const abstractCounter = document.getElementById("abstractCounter");
+            const blindRuleStatus = document.getElementById("blindRuleStatus");
+            const auditPulse = document.getElementById("auditPulse");
+            const saveDraftButton = document.getElementById("saveDraftButton");
+            const draftStatus = document.getElementById("draftStatus");
+            const completionBar = document.getElementById("completionBar");
+            const completionText = document.getElementById("completionText");
+            const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            const isGroupProjectCheckbox = document.getElementById("IsGroupProject");
+            const groupMembersSection = document.getElementById("groupMembersSection");
+            const groupMembersContainer = document.getElementById("groupMembersContainer");
+            const addMemberBtn = document.getElementById("addMemberBtn");
+
+            let isValidBlindRule = true;
+            let isCheckingBlindRule = false;
+
+            function toggleGroupMembers() {
+                if(isGroupProjectCheckbox.checked) {
+                    groupMembersSection.classList.remove("hidden");
+                } else {
+                    groupMembersSection.classList.add("hidden");
+                }
+            }
+
+            isGroupProjectCheckbox.addEventListener("change", toggleGroupMembers);
+            toggleGroupMembers(); // init
+
+            let memberIndexCounter = Array.from(document.querySelectorAll('.group-member-row')).length;
+
+            addMemberBtn.addEventListener("click", () => {
+                const idx = memberIndexCounter++;
+                const tmpl = `
+                    <div class="group-member-row grid grid-cols-1 md:grid-cols-3 gap-4 items-center bg-slate-950/40 p-5 rounded-3xl border border-slate-800 shadow-inner relative animate-fade-in-up">
+                        <input type="hidden" name="GroupMembers.Index" value="${idx}" />
+                        <input type="text" name="GroupMembers[${idx}].StudentIdIdentifier" placeholder="NODE ID" class="bg-transparent border-none rounded-xl py-3 px-4 text-xs font-black text-slate-200 focus:ring-1 focus:ring-emerald-500/30" />
+                        <input type="text" name="GroupMembers[${idx}].FullName" placeholder="FULL NAME" class="bg-transparent border-none rounded-xl py-3 px-4 text-xs font-black text-slate-200 focus:ring-1 focus:ring-emerald-500/30" />
+                        <div class="flex gap-2">
+                            <input type="email" name="GroupMembers[${idx}].Email" placeholder="UPLINK EMAIL" class="w-full bg-transparent border-none rounded-xl py-3 px-4 text-xs font-black text-slate-200 focus:ring-1 focus:ring-emerald-500/30" />
+                            <button type="button" class="remove-member-btn text-slate-700 hover:text-red-500 p-2 material-symbols-outlined transition-colors">delete</button>
+                        </div>
+                    </div>
+                `;
+                groupMembersContainer.insertAdjacentHTML('beforeend', tmpl);
+                bindRemoveButtons();
+                updateCounterAndCompletion();
+            });
+
+            function bindRemoveButtons() {
+                document.querySelectorAll('.remove-member-btn').forEach(btn => {
+                    btn.onclick = function() {
+                        this.closest('.group-member-row').remove();
+                        updateCounterAndCompletion();
+                    };
+                });
+            }
+            bindRemoveButtons();
+
+            const trackedIds = ["Title", "ExpertiseDomainId", "ExecutiveSummary", "ProblemStatement", "Objectives", "Methodology", "ExpectedOutcomes", "TechStack", "TimelineWeeks", "AgreeBlindRule"];
+
+            let blindRuleTimer = null;
+
+            function modelFromForm() {
+                return {
+                    draftId: draftIdInput.value ? parseInt(draftIdInput.value) : null,
+                    title: form.querySelector("#Title")?.value || null,
+                    expertiseDomainId: form.querySelector("#ExpertiseDomainId")?.value ? parseInt(form.querySelector("#ExpertiseDomainId").value) : null,
+                    executiveSummary: form.querySelector("#ExecutiveSummary")?.value || null,
+                    problemStatement: form.querySelector("#ProblemStatement")?.value || null,
+                    objectives: form.querySelector("#Objectives")?.value || null,
+                    methodology: form.querySelector("#Methodology")?.value || null,
+                    expectedOutcomes: form.querySelector("#ExpectedOutcomes")?.value || null,
+                    techStack: form.querySelector("#TechStack")?.value || null,
+                    keywords: form.querySelector("#Keywords")?.value || null,
+                    agreeBlindRule: !!form.querySelector("#AgreeBlindRule")?.checked,
+                    isGroupProject: !!isGroupProjectCheckbox?.checked,
+                    groupMembers: Array.from(document.querySelectorAll('.group-member-row')).map(row => ({
+                        studentIdIdentifier: row.querySelector('input[placeholder="NODE ID"]')?.value || null,
+                        fullName: row.querySelector('input[placeholder="FULL NAME"]')?.value || null,
+                        email: row.querySelector('input[placeholder="UPLINK EMAIL"]')?.value || null
+                    }))
+                };
+            }
+
+            function updateCounterAndCompletion() {
+                const count = abstractField.value.length;
+                abstractCounter.textContent = `${count} / 2000`;
+
+                let done = 0;
+                trackedIds.forEach(id => {
+                    const el = form.querySelector(`#${id}`);
+                    if (!el) return;
+                    if (el.type === "checkbox") {
+                        if (el.checked) done += 1;
+                    } else if ((el.value || "").toString().trim().length > 0) {
+                        done += 1;
+                    }
+                });
+
+                const percent = Math.round((done / trackedIds.length) * 100);
+                completionBar.style.width = `${percent}%`;
+                completionText.textContent = `${percent}% Ready`;
+            }
+
+            async function checkBlindRule() {
+                const text = abstractField.value.trim();
+                const title = titleField.value.trim();
+                
+                if (text.length < 10) {
+                    isValidBlindRule = true;
+                    blindRuleStatus.textContent = "Awaiting Content...";
+                    blindRuleStatus.className = "text-[10px] font-black text-slate-600 uppercase tracking-[0.1em]";
+                    auditPulse.className = "w-2 h-2 rounded-full bg-slate-700";
+                    return;
+                }
+
+                isCheckingBlindRule = true;
+                submitBtn.disabled = true;
+                submitBtn.style.opacity = "0.5";
+                auditPulse.className = "w-2 h-2 rounded-full bg-blue-500 animate-pulse";
+                blindRuleStatus.textContent = "Scanning for Identifiers...";
+
+                // Immediate Local Check (regex for common email patterns or long ID codes)
+                const emailRegex = /[a-zA-Z0-9._%+-]+@@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+                if (emailRegex.test(text) || emailRegex.test(title)) {
+                    setAuditState(false, "Critical Breach: Email ID detected.");
+                    return;
+                }
+
+                try {
+                    const payload = modelFromForm();
+                    const response = await fetch('@Url.Action("CheckBlindRule", "Student")', {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "RequestVerificationToken": token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        setAuditState(data.isValid, data.message);
+                    } else {
+                        throw new Error("Server parity error");
+                    }
+                } catch (err) {
+                    console.error("Audit Protocol failure:", err);
+                    blindRuleStatus.textContent = "Offline: Integrity Check Suspended";
+                    blindRuleStatus.className = "text-[10px] font-black text-amber-500 uppercase tracking-[0.1em]";
+                    auditPulse.className = "w-2 h-2 rounded-full bg-amber-500 animate-pulse";
+                } finally {
+                    isCheckingBlindRule = false;
+                }
+            }
+
+            function setAuditState(isValid, message) {
+                isValidBlindRule = isValid;
+                blindRuleStatus.textContent = message;
+                
+                if(isValid) {
+                    blindRuleStatus.className = "text-[10px] font-black text-emerald-500 uppercase tracking-[0.1em]";
+                    auditPulse.className = "w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]";
+                    submitBtn.disabled = false;
+                    submitBtn.style.opacity = "1";
+                } else {
+                    blindRuleStatus.className = "text-[10px] font-black text-red-500 uppercase tracking-[0.1em]";
+                    auditPulse.className = "w-2 h-2 rounded-full bg-red-500 animate-bounce shadow-[0_0_8px_#ef4444]";
+                    submitBtn.disabled = true;
+                    submitBtn.style.opacity = "0.5";
+                }
+            }
+
+            abstractField.addEventListener("input", () => {
+                updateCounterAndCompletion();
+                if (blindRuleTimer) clearTimeout(blindRuleTimer);
+                blindRuleTimer = setTimeout(checkBlindRule, 800);
+            });
+
+            form.addEventListener("submit", (e) => {
+                if (!isValidBlindRule || isCheckingBlindRule) {
+                    e.preventDefault();
+                    if (!isValidBlindRule) {
+                        alert("Academic Integrity Violation: Please remove personal identifiers (Name, Email, Student ID) from the Executive Summary before submitting.");
+                    }
+                }
+            });
+
+            form.addEventListener("input", updateCounterAndCompletion);
+            saveDraftButton.addEventListener("click", saveDraft);
+
+            async function saveDraft() {
+                draftStatus.innerHTML = '<span class="animate-pulse">Synchronizing...</span>';
+                draftStatus.className = "text-[10px] font-black text-blue-500 uppercase tracking-widest italic";
+                
+                try {
+                    const payload = modelFromForm();
+                    const response = await fetch('@Url.Action("SaveDraft", "Student")', {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "RequestVerificationToken": token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            draftIdInput.value = data.draftId;
+                            draftStatus.textContent = `Synched: ${data.savedAt}`;
+                            draftStatus.className = "text-[10px] font-black text-slate-600 uppercase tracking-widest italic";
+                        }
+                    } else {
+                        throw new Error("HTTP Sync Fail");
+                    }
+                } catch (err) {
+                    draftStatus.innerHTML = '<span class="text-red-500 flex items-center gap-1"><span class="material-symbols-outlined text-[12px]">cloud_off</span> Sync Failure: Check Connection</span>';
+                    draftStatus.className = "text-[10px] font-black uppercase tracking-widest italic";
+                }
+            }
+
+            setInterval(() => {
+                const title = form.querySelector("#Title")?.value?.trim();
+                const abstractText = form.querySelector("#ExecutiveSummary")?.value?.trim();
+                if (title || abstractText) saveDraft();
+            }, 30000);
+
+            updateCounterAndCompletion();
+            checkBlindRule();
+        })();
+    </script>
+}

@@ -1,0 +1,124 @@
+@{
+    ViewData["Title"] = "Submission Protocol";
+    Layout = "_Layout";
+    int? draftId = ViewBag.DraftId as int?;
+}
+
+<style>
+    .gradient-emerald {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    }
+    .gradient-amber {
+        background: linear-gradient(135deg, #d97706 0%, #fbbf24 100%);
+    }
+    .text-gradient-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+
+<div class="space-y-10 pb-20 animate-fade-in-up">
+    <!-- Header Protocol -->
+    <header class="glass-panel p-10 md:p-14 rounded-[3.5rem] relative overflow-hidden border border-slate-800/50">
+        <div class="absolute -right-20 -top-20 w-[40rem] h-[40rem] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-12">
+            <div class="max-w-3xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-emerald-500 text-[10px] font-black uppercase tracking-widest mb-6 shadow-sm">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    Phase 01: Pre-Submission Review
+                </div>
+                <h1 class="text-5xl md:text-6xl font-black text-slate-100 font-headline leading-[0.9] mb-8 tracking-tighter">
+                    Academic <span class="text-gradient-emerald">Guidelines.</span>
+                </h1>
+                <p class="text-lg font-bold text-slate-500 max-w-2xl leading-relaxed font-headline">
+                    Ensure your research project aligns with the authorized submission guidelines. The system dynamically validates all academic integrity standards.
+                </p>
+            </div>
+
+            <div class="shrink-0">
+                <a asp-action="CreateSubmission" asp-route-fromGuidelines="true" asp-route-draftId="@draftId" 
+                   class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-10 py-6 rounded-[2rem] shadow-[0_20px_40px_-10px_rgba(16,185,129,0.4)] transition-all active:scale-95 flex items-center gap-4 text-[14px] uppercase tracking-wider group">
+                    <span class="material-symbols-outlined text-[24px] group-hover:rotate-12 transition-transform">terminal</span>
+                    Start Submission
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+        <!-- Requirements -->
+        <div class="glass-card p-10 md:p-12 rounded-[3.5rem] border border-slate-800/50 bg-slate-900/10 group hover:border-emerald-500/30 transition-all duration-500">
+            <div class="w-16 h-16 bg-slate-900 border border-slate-700 text-emerald-500 rounded-2xl flex items-center justify-center mb-10 shadow-inner group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-4xl">schema</span>
+            </div>
+            <h3 class="text-3xl font-black text-slate-100 font-headline mb-6 tracking-tight">Mandatory Requirements</h3>
+            <ul class="space-y-6">
+                <li class="flex items-start gap-4">
+                    <div class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-500/30">
+                        <span class="material-symbols-outlined text-emerald-400 text-[14px] font-black">check</span>
+                    </div>
+                    <div>
+                        <p class="text-[14px] font-black text-slate-200 uppercase tracking-wide mb-1">Project Details</p>
+                        <p class="text-[13px] font-bold text-slate-500">Disciplinary Area and Research Title validation.</p>
+                    </div>
+                </li>
+                <li class="flex items-start gap-4">
+                    <div class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-500/30">
+                        <span class="material-symbols-outlined text-emerald-400 text-[14px] font-black">check</span>
+                    </div>
+                    <div>
+                        <p class="text-[14px] font-black text-slate-200 uppercase tracking-wide mb-1">Executive Abstract</p>
+                        <p class="text-[13px] font-bold text-slate-500">Minimum 100 character threshold required for system review.</p>
+                    </div>
+                </li>
+                <li class="flex items-start gap-4">
+                    <div class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5 border border-emerald-500/30">
+                        <span class="material-symbols-outlined text-emerald-400 text-[14px] font-black">check</span>
+                    </div>
+                    <div>
+                        <p class="text-[14px] font-black text-slate-200 uppercase tracking-wide mb-1">Methodological Framework</p>
+                        <p class="text-[13px] font-bold text-slate-500">Documentary evidence of research objectives and strategy.</p>
+                    </div>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Blind Rule -->
+        <div class="glass-card p-10 md:p-12 rounded-[3.5rem] border border-slate-800/50 bg-slate-900/10 group hover:border-amber-500/30 transition-all duration-500">
+            <div class="w-16 h-16 bg-slate-900 border border-slate-700 text-amber-500 rounded-2xl flex items-center justify-center mb-10 shadow-inner group-hover:scale-110 transition-transform">
+                <span class="material-symbols-outlined text-4xl">fingerprint_off</span>
+            </div>
+            <h3 class="text-3xl font-black text-slate-100 font-headline mb-6 tracking-tight">Blind-Review Policy</h3>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-amber-500/10 border border-amber-500/20 text-amber-500 text-[9px] font-black uppercase tracking-[0.2em] mb-8">
+                Critical Constraint
+            </div>
+            
+            <ul class="space-y-6">
+                <li class="flex items-start gap-4">
+                    <div class="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5 border border-amber-500/30">
+                        <span class="material-symbols-outlined text-amber-500 text-[14px] font-black">warning</span>
+                    </div>
+                    <div>
+                        <p class="text-[14px] font-black text-slate-200 uppercase tracking-wide mb-1">No Personal Details</p>
+                        <p class="text-[13px] font-bold text-slate-500">No personal names, usernames, or IDs in research text.</p>
+                    </div>
+                </li>
+                <li class="flex items-start gap-4">
+                    <div class="w-6 h-6 rounded-full bg-amber-500/20 flex items-center justify-center shrink-0 mt-0.5 border border-amber-500/30">
+                        <span class="material-symbols-outlined text-amber-500 text-[14px] font-black">warning</span>
+                    </div>
+                    <div>
+                        <p class="text-[14px] font-black text-slate-200 uppercase tracking-wide mb-1">Integrity Policy</p>
+                        <p class="text-[13px] font-bold text-slate-500">System will reject submissions containing names or IDs.</p>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="mt-12 p-6 bg-slate-900/60 rounded-3xl border border-slate-800 text-[11px] font-bold text-slate-500 leading-relaxed italic">
+                "Honesty in research starts with the integrity of the process."
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,411 @@
+@model UniSync.Web.ViewModels.StudentSubmissionsTrackerViewModel
+
+@{
+    ViewData["Title"] = "Submission Profile";
+    Layout = "_Layout";
+    var submission = Model.SelectedSubmission;
+}
+
+<style>
+    .gradient-text-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .step-line-active {
+        background: linear-gradient(to bottom, #10b981, #34d399);
+    }
+</style>
+
+@if (submission is null)
+{
+    <div class="glass-panel p-20 rounded-[3rem] text-center max-w-2xl mx-auto mt-10">
+        <div class="w-20 h-20 bg-red-900/20 border border-red-500/20 rounded-3xl flex items-center justify-center mx-auto mb-8">
+            <span class="material-symbols-outlined text-4xl text-red-500">priority_high</span>
+        </div>
+        <h2 class="text-2xl font-black text-slate-100 font-headline mb-4">Project Not Found</h2>
+        <p class="text-slate-400 font-medium mb-8">The requested research submission record could not be located in the system.</p>
+        <a asp-action="MySubmissions" class="inline-flex items-center gap-2 text-emerald-400 font-black uppercase tracking-widest text-[10px] hover:text-emerald-300 transition-colors">
+            <span class="material-symbols-outlined text-sm">arrow_back</span>
+            Back to Projects
+        </a>
+    </div>
+}
+else
+{
+    var statusColor = submission.Status switch {
+        UniSync.Core.Enums.SubmissionStatus.Linked => "emerald",
+        UniSync.Core.Enums.SubmissionStatus.UnderReview => "emerald",
+        UniSync.Core.Enums.SubmissionStatus.Pending => "amber",
+        _ => "blue"
+    };
+
+    <div id="project-details-container" class="space-y-8 pb-20 animate-fade-in-up transition-all duration-500">
+        <!-- Header Architecture -->
+        <header class="glass-panel p-10 md:p-14 rounded-[3rem] relative overflow-hidden">
+            <div class="absolute -right-20 -top-20 w-[40rem] h-[40rem] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+            
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+                <div>
+                   <div class="flex items-center gap-4 mb-6">
+                        <a asp-action="MySubmissions" class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-emerald-600 hover:border-emerald-500 hover:text-white transition-all shadow-inner group">
+                            <span class="material-symbols-outlined text-[20px] group-hover:-translate-x-1 transition-transform">arrow_back</span>
+                        </a>
+                        <div>
+                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] block mb-1">Submission Record</span>
+                            <span class="text-[12px] font-bold text-emerald-500 font-headline">AL-@submission.SubmissionDate.Year-@submission.Id</span>
+                        </div>
+                   </div>
+                   <h1 class="text-4xl md:text-5xl font-black text-slate-100 font-headline leading-tight tracking-tight">
+                        Project <span class="gradient-text-emerald">Details.</span>
+                   </h1>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    @if(statusColor == "emerald") {
+                        <span class="px-6 py-3 rounded-2xl bg-emerald-900/20 border border-emerald-500/20 text-[11px] font-black text-emerald-400 uppercase tracking-widest shadow-lg">
+                            @submission.Status Status
+                        </span>
+                    } else if(statusColor == "amber") {
+                        <span class="px-6 py-3 rounded-2xl bg-amber-900/20 border border-amber-500/20 text-[11px] font-black text-amber-400 uppercase tracking-widest shadow-lg">
+                            @submission.Status Status
+                        </span>
+                    } else {
+                        <span class="px-6 py-3 rounded-2xl bg-blue-900/20 border border-blue-500/20 text-[11px] font-black text-blue-400 uppercase tracking-widest shadow-lg">
+                            @submission.Status Status
+                        </span>
+                    }
+
+                    @if(submission.Status == UniSync.Core.Enums.SubmissionStatus.Pending) {
+                        <a asp-action="EditSubmission" asp-route-id="@submission.Id" class="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-slate-800 hover:text-white transition-all shadow-inner group">
+                            <span class="material-symbols-outlined text-[24px]">edit_note</span>
+                        </a>
+                    }
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <!-- Detailed Content -->
+            <div class="xl:col-span-2 space-y-8">
+                <!-- Research Brief -->
+                <section class="glass-card p-10 rounded-[2.5rem] relative overflow-hidden">
+                    <div class="relative z-10 space-y-12">
+                        <div>
+                            <div class="flex items-center gap-3 mb-6">
+                                <span class="px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 text-[9px] font-black uppercase tracking-widest">
+                                    @(submission.ExpertiseDomain?.Name ?? "General Domain")
+                                </span>
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-700"></span>
+                                <span class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">LOGGED: @submission.SubmissionDate.ToString("dd MMM yyyy")</span>
+                            </div>
+                            <h2 class="text-3xl font-black font-headline text-slate-100 leading-tight mb-8">@submission.Title</h2>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div class="space-y-4">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <span class="material-symbols-outlined text-emerald-500 text-[18px]">description</span>
+                                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Executive Abstract</h3>
+                                </div>
+                                <p class="text-sm font-medium text-slate-400 leading-relaxed whitespace-pre-line text-justify">@submission.ExecutiveSummary</p>
+                            </div>
+                            
+                            <div class="space-y-8">
+                                <div class="space-y-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="material-symbols-outlined text-emerald-500 text-[18px]">psychology</span>
+                                        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Problem Framework</h3>
+                                    </div>
+                                    <p class="text-sm font-medium text-slate-400 leading-relaxed">@submission.ProblemStatement</p>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="material-symbols-outlined text-emerald-500 text-[18px]">target</span>
+                                        <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em]">Strategic Objectives</h3>
+                                    </div>
+                                    <p class="text-sm font-medium text-slate-400 leading-relaxed">@submission.Objectives</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Technical Specs Grid -->
+                        <div class="pt-10 border-t border-slate-800 grid grid-cols-2 md:grid-cols-4 gap-8">
+                            <div class="bg-slate-900/40 p-5 rounded-3xl border border-slate-800/50">
+                                <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] mb-2">Architecture</p>
+                                <p class="text-[13px] font-black text-slate-200">@submission.TechStack</p>
+                            </div>
+                            <div class="bg-slate-900/40 p-5 rounded-3xl border border-slate-800/50">
+                                <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] mb-2">Timeline</p>
+                                <p class="text-[13px] font-black text-slate-200">@submission.TimelineWeeks Weeks</p>
+                            </div>
+                            <div class="bg-slate-900/40 p-5 rounded-3xl border border-slate-800/50">
+                                <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] mb-2">Team Protocol</p>
+                                <p class="text-[13px] font-black text-slate-200">@(submission.IsGroupProject ? "Collaborative" : "Independent")</p>
+                            </div>
+                            <div class="bg-slate-900/40 p-5 rounded-3xl border border-slate-800/50 text-right md:text-left">
+                                <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] mb-2">System Status</p>
+                                <p class="text-[13px] font-black text-emerald-500">Active</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                @if (submission.IsGroupProject)
+                {
+                    <section class="glass-card p-10 rounded-[2.5rem] relative overflow-hidden">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12">
+                            <div>
+                                <h3 class="text-2xl font-black text-slate-100 font-headline mb-2">Team Management.</h3>
+                                <p class="text-sm font-medium text-slate-500">Manage your group members and project collaboration.</p>
+                            </div>
+                            <div class="w-12 h-12 bg-slate-900 border border-slate-700 rounded-2xl flex items-center justify-center text-slate-400">
+                                <span class="material-symbols-outlined">group</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                            <div class="space-y-6">
+                                <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Team Members</h4>
+                                <div class="space-y-4">
+                                    <div class="p-5 rounded-2xl bg-slate-900 border border-emerald-500/20 shadow-lg flex items-center justify-between group relative overflow-hidden">
+                                        <div class="absolute left-0 top-0 w-1 h-full bg-emerald-500"></div>
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center text-[12px] font-black shadow-lg shadow-emerald-900/20">
+                                                @(submission.Submitter?.FullName?.Substring(0,1) ?? "U")
+                                            </div>
+                                            <div>
+                                                <p class="text-sm font-black text-slate-100">@submission.Submitter?.FullName</p>
+                                                <p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-0.5">Project Lead</p>
+                                            </div>
+                                        </div>
+                                        <span class="material-symbols-outlined text-emerald-500 text-[18px]">verified</span>
+                                    </div>
+                                    
+                                    @foreach (var member in submission.GroupMembers)
+                                    {
+                                        <div class="p-5 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between hover:border-slate-600 transition-colors">
+                                            <div class="flex items-center gap-4">
+                                                <div class="w-10 h-10 rounded-xl bg-slate-800 text-slate-400 flex items-center justify-center text-[12px] font-black border border-slate-700">
+                                                    @member.FullName.Substring(0,1).ToUpper()
+                                                </div>
+                                                <div>
+                                                    <p class="text-sm font-black text-slate-200">@member.FullName</p>
+                                                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-0.5">@member.Status Tier</p>
+                                                </div>
+                                            </div>
+                                            @if(member.Status == UniSync.Core.Enums.InvitationStatus.Pending) {
+                                                <span class="px-2 py-1 rounded-md bg-amber-900/20 border border-amber-500/20 text-[8px] font-black text-amber-500 uppercase animate-pulse">Pending Auth</span>
+                                            } else if(member.Status == UniSync.Core.Enums.InvitationStatus.Accepted) {
+                                                <span class="material-symbols-outlined text-emerald-500 text-[18px]">verified</span>
+                                            } else {
+                                                <span class="material-symbols-outlined text-red-500 text-[18px]">cancel</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="space-y-6">
+                                <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Invite Colleague</h4>
+                                <form asp-action="InviteMember" method="post" class="space-y-4 p-6 bg-slate-900/50 rounded-3xl border border-slate-800/50">
+                                    <input type="hidden" name="submissionId" value="@submission.Id" />
+                                    <div class="space-y-1.5">
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Researcher Identity</label>
+                                        <input type="text" name="fullName" placeholder="Full Research Name" required 
+                                               class="w-full bg-slate-900 border border-slate-700 rounded-xl py-4 px-5 text-xs font-bold text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-headline" />
+                                    </div>
+                                    <div class="space-y-1.5">
+                                        <label class="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Network Address</label>
+                                        <input type="email" name="email" placeholder="university.node@email.com" required 
+                                               class="w-full bg-slate-900 border border-slate-700 rounded-xl py-4 px-5 text-xs font-bold text-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all font-headline" />
+                                    </div>
+                                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-4 rounded-xl text-[11px] uppercase tracking-widest shadow-lg shadow-emerald-900/20 transition-all active:scale-[0.98] mt-4 flex items-center justify-center gap-2">
+                                        <span class="material-symbols-outlined text-[18px]">send</span>
+                                        Dispatch Node Invite
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </section>
+                }
+            </div>
+
+            <!-- Pipeline Tracker -->
+            <div class="xl:col-span-1 space-y-8">
+                @if (submission.Status == UniSync.Core.Enums.SubmissionStatus.Linked && submission.LinkedSupervisor != null)
+                {
+                    <section class="glass-card p-10 rounded-[3rem] relative overflow-hidden border border-emerald-500/20 shadow-xl shadow-emerald-900/10">
+                        <div class="absolute -right-4 -top-4 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl"></div>
+                        <div class="flex items-center justify-between mb-8">
+                            <h3 class="text-xl font-black text-slate-100 font-headline">Supervisor.</h3>
+                            <button onclick="openReallocationModal()" class="text-[9px] font-black text-slate-500 uppercase tracking-widest hover:text-red-400 transition-colors flex items-center gap-1">
+                                <span class="material-symbols-outlined text-[14px]">sync_problem</span>
+                                Request Change
+                            </button>
+                        </div>
+
+                        <div class="flex items-center gap-5 mb-8">
+                            <div class="w-16 h-16 rounded-3xl bg-slate-900 border-2 border-emerald-500/50 flex items-center justify-center text-emerald-400 font-bold text-2xl shadow-inner">
+                                @submission.LinkedSupervisorId.Substring(0, 1)
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-slate-100 font-headline truncate max-w-[150px]">@submission.LinkedSupervisor.FullName</h4>
+                                <p class="text-xs font-medium text-slate-500 truncate mt-0.5">Assigned Clinical Director</p>
+                            </div>
+                        </div>
+
+                        <a asp-action="Messages" asp-route-contactId="@submission.LinkedSupervisorId" class="w-full py-4 rounded-2xl bg-emerald-600 text-white font-black text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20 active:scale-[0.98]">
+                            <span class="material-symbols-outlined text-[18px]">forum</span> Messaging Hub
+                        </a>
+                    </section>
+                }
+
+                <section class="glass-card p-10 rounded-[3rem] sticky top-8 relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-12">
+                        <h3 class="text-xl font-black text-slate-100 font-headline uppercase tracking-tight">Approval Progress.</h3>
+                        <div class="w-8 h-8 bg-slate-900 border border-slate-700 rounded-xl flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[16px] text-emerald-500 animate-pulse">radar</span>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-12 relative">
+                        <!-- Connector Lines -->
+                        <div class="absolute left-[15px] top-4 h-[calc(100%-8px)] w-[2px] bg-slate-800"></div>
+                        <div class="absolute left-[15px] top-4 h-@(Model.ProgressPercent > 50 ? "full" : Model.ProgressPercent > 0 ? "1/2" : "0") w-[2px] step-line-active"></div>
+
+                        <!-- Step 1: Submissions -->
+                        <div class="relative pl-12 group">
+                            <div class="absolute left-0 top-0 w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-900/20 z-10 transition-transform group-hover:scale-110">
+                                <span class="material-symbols-outlined text-[18px]">check</span>
+                            </div>
+                            <h4 class="text-[13px] font-black text-slate-100 uppercase tracking-wide">Proposal Submitted</h4>
+                            <p class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">@submission.SubmissionDate.ToString("dd MMM • HH:mm")</p>
+                        </div>
+
+                        <!-- Step 2: Internal Audit -->
+                        <div class="relative pl-12 group @(Model.IsReviewActive || Model.IsReviewCompleted ? "" : "opacity-30")">
+                            @if(Model.IsReviewCompleted) {
+                                <div class="absolute left-0 top-0 w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center z-10 shadow-lg shadow-emerald-900/20 transition-transform group-hover:scale-110">
+                                    <span class="material-symbols-outlined text-[18px]">check</span>
+                                </div>
+                            } else if(Model.IsReviewActive) {
+                                <div class="absolute left-0 top-0 w-8 h-8 rounded-xl bg-slate-900 border-2 border-emerald-500 text-emerald-500 flex items-center justify-center z-10 shadow-lg shadow-emerald-500/10 animate-pulse transition-transform group-hover:scale-110">
+                                    <span class="material-symbols-outlined text-[18px] animate-spin">sync</span>
+                                </div>
+                            } else {
+                                <div class="absolute left-0 top-0 w-8 h-8 rounded-xl bg-slate-900 border-2 border-slate-700 text-slate-600 flex items-center justify-center z-10 transition-transform group-hover:scale-110">
+                                    <span class="material-symbols-outlined text-[18px]">verified_user</span>
+                                </div>
+                            }
+                            <h4 class="text-[13px] font-black text-slate-100 uppercase tracking-wide">Internal Review</h4>
+                            <p class="text-[10px] font-bold text-emerald-500 mt-1 uppercase tracking-widest">@Model.ReviewState</p>
+                        </div>
+
+                        <!-- Step 3: Deployment -->
+                        <div class="relative pl-12 group @(submission.Status == UniSync.Core.Enums.SubmissionStatus.Linked ? "" : "opacity-30")">
+                            <div class="absolute left-0 top-0 w-8 h-8 rounded-xl @(submission.Status == UniSync.Core.Enums.SubmissionStatus.Linked ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/20" : "bg-slate-900 border-2 border-slate-800 text-slate-600") flex items-center justify-center z-10 transition-transform group-hover:scale-110">
+                                <span class="material-symbols-outlined text-[18px]">hub</span>
+                            </div>
+                            <h4 class="text-[13px] font-black text-slate-100 uppercase tracking-wide">Supervisor Assignment</h4>
+                            <p class="text-[10px] font-bold text-slate-500 mt-1 uppercase tracking-widest">Final Approval Stage</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Indicator -->
+                    <div class="mt-16 pt-10 border-t border-slate-800/50">
+                        <div class="flex items-center justify-between mb-4">
+                           <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.25em]">Overall Progress</p>
+                           <p class="text-sm font-black font-headline text-emerald-400">@Model.ProgressPercent%</p>
+                        </div>
+                        <div class="w-full h-3 bg-slate-900 border border-slate-800 rounded-full overflow-hidden p-0.5">
+                            <div class="h-full bg-gradient-to-r from-emerald-600 to-emerald-400 rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.5)]" style="width: @Model.ProgressPercent%"></div>
+                        </div>
+                        <p class="text-[9px] font-medium text-slate-500 mt-6 text-center italic">Waiting for final administrative approval for this project.</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+}
+
+@section GlobalModals {
+    <!-- Reallocation Modal (Ported to Root Level for Global Centering) -->
+    <div id="reallocationModal" class="hidden fixed inset-0 z-[1000000] flex items-center justify-center p-4">
+        <!-- Absolute Black Overlay -->
+        <div class="absolute inset-0 bg-slate-950/90 transition-all duration-500" onclick="closeReallocationModal()"></div>
+        
+        <!-- Smaller, Truly Centered Card -->
+        <div class="w-full max-w-lg p-10 md:p-12 rounded-[3.5rem] relative z-10 border border-slate-700 bg-slate-900 shadow-[0_0_150px_rgba(0,0,0,1)] scale-in transition-all duration-500">
+            <!-- Header -->
+            <header class="mb-10 text-center">
+                <span class="px-4 py-1.5 rounded-full bg-red-600/10 text-red-500 text-[9px] font-black uppercase tracking-widest mb-4 inline-block border border-red-500/30">
+                    Grievance Protocol
+                </span>
+                <h3 class="text-3xl font-headline font-black text-white mb-2 leading-tight">Request <span class="text-red-500">Reallocation</span></h3>
+                <p class="text-[12px] font-medium text-slate-400 italic">
+                    Formal submission for supervisor reassignment
+                </p>
+            </header>
+            
+            <form asp-action="SubmitReallocationRequest" method="post" class="space-y-8">
+                <input type="hidden" name="submissionId" value="@submission.Id" />
+                
+                <div class="space-y-4">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Reason for Change</label>
+                    <textarea name="reason" rows="5" class="w-full bg-[#020617] border border-slate-800 p-8 rounded-[2rem] text-[14px] text-white font-medium focus:ring-4 focus:ring-red-500/20 focus:border-red-500/50 outline-none transition-all placeholder:text-slate-800 shadow-2xl" placeholder="Detailed explanation..." required></textarea>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-500 leading-relaxed text-center">
+                    Audit will be performed by the Module Leader.
+                </div>
+                
+                <div class="flex gap-4">
+                    <button type="button" onclick="closeReallocationModal()" class="flex-1 px-8 py-5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl text-[11px] uppercase tracking-widest transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 px-8 py-5 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl text-[11px] uppercase tracking-widest shadow-2xl transition-all active:scale-95">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function openReallocationModal() {
+            const modal = document.getElementById('reallocationModal');
+            const sidebar = document.getElementById('main-sidebar');
+            const content = document.getElementById('project-details-container');
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden'; 
+            
+            if(sidebar) sidebar.style.filter = 'blur(15px) grayscale(20%)';
+            if(content) content.style.filter = 'blur(15px)';
+        }
+        function closeReallocationModal() {
+            const modal = document.getElementById('reallocationModal');
+            const sidebar = document.getElementById('main-sidebar');
+            const content = document.getElementById('project-details-container');
+            
+            modal.classList.add('hidden');
+            document.body.style.overflow = 'auto'; 
+            
+            if(sidebar) sidebar.style.filter = 'none';
+            if(content) content.style.filter = 'none';
+        }
+
+        (() => {
+            if (!window.signalConnection) return;
+
+            signalConnection.on("ReceiveSignal", (type, title) => {
+                if (type === "Submission" || type === "Link" || type === "Broadcast") {
+                    location.reload();
+                }
+            });
+
+            signalConnection.on("IdentityChanged", (userId, newName) => {
+                location.reload();
+            });
+        })();
+    </script>
+}

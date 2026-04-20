@@ -1,0 +1,24 @@
+@using Microsoft.AspNetCore.Identity
+@using UniSync.Core.Entities
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+<div class="flex items-center justify-end gap-x-4">
+@if (SignInManager.IsSignedIn(User))
+{
+    var user = await UserManager.GetUserAsync(User);
+    <span class="text-sm font-semibold text-on-surface flex items-center gap-2 border border-outline-variant/30 rounded-full py-1.5 px-4 bg-surface-container-lowest/40 backdrop-blur-md">
+        <span class="material-symbols-outlined text-primary text-sm">person</span>
+        Hello @(user?.FullName ?? User.Identity?.Name)!
+    </span>
+    <form class="inline" asp-controller="Account" asp-action="Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+        <button type="submit" class="text-sm font-bold text-error bg-error-container/20 hover:bg-error-container/40 rounded-full py-1.5 px-4 transition-all">Logout</button>
+    </form>
+}
+else
+{
+    <a class="text-sm font-bold text-white bg-[#1D4ED8] hover:bg-blue-800 rounded-full py-2 px-6 transition-all shadow-lg flex items-center gap-2" asp-controller="Account" asp-action="Login">
+        Secure Login <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+    </a>
+}
+</div>
