@@ -1,0 +1,384 @@
+@model UniSync.Core.Entities.ResearchSubmission
+
+@{
+    ViewData["Title"] = Model.Title;
+    Layout = "_Layout";
+
+    var linkScore = (int?)ViewBag.LinkScore ?? 0;
+    var interestCount = (int?)ViewBag.InterestCount ?? 0;
+    var hasExpressedInterest = (bool?)ViewBag.HasExpressedInterest ?? false;
+    var anonymousId = $"PRJ-{Model.Id:D4}";
+    var linkStatusColor = linkScore >= 75 ? "emerald" : linkScore >= 50 ? "amber" : "gray";
+}
+
+<div class="space-y-10 pb-20 animate-fade-in-up">
+    <!-- Breadcrumb Protocol -->
+    <nav class="flex items-center gap-3 px-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+        <a asp-action="Dashboard" class="hover:text-emerald-600 transition-colors">Faculty Hub</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <a asp-action="LinkedProjects" class="hover:text-emerald-600 transition-colors">Supervision</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <span class="text-slate-900">Node Analysis</span>
+    </nav>
+    <!-- Header Architecture & Identity Reveal -->
+    <header class="glass-panel p-10 rounded-[3rem] relative overflow-hidden">
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-emerald-600/5 rounded-full blur-[100px]"></div>
+        
+        <div class="relative z-10">
+            <div class="flex items-center gap-3 mb-8">
+                <span class="px-3 py-1 rounded-lg bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest">Protocol: @anonymousId</span>
+                <div class="w-1 h-1 rounded-full bg-slate-200"></div>
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">@Model.ExpertiseDomain?.Name</span>
+            </div>
+
+            <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+                <div class="max-w-3xl">
+                    <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight">@Model.Title</h1>
+                    <div class="flex items-center gap-4 mt-6">
+                        <span class="px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            @Model.Status
+                        </span>
+                        <div class="w-1 h-1 rounded-full bg-slate-200"></div>
+                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Submitted @Model.SubmissionDate.ToString("MMM dd, yyyy")</span>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-[2rem] border-emerald-100 min-w-[180px] text-center">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Link Score</p>
+                    <div class="flex items-center justify-center gap-1">
+                        <span class="text-4xl font-black text-emerald-600">@linkScore</span>
+                        <span class="text-lg font-black text-emerald-600/50">%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Sequence -->
+            <div class="mt-12 flex flex-wrap gap-4">
+                @if (!hasExpressedInterest && Model.Status == UniSync.Core.Enums.SubmissionStatus.Pending)
+                {
+                    <form asp-action="ExpressInterest" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="submissionId" value="@Model.Id" />
+                        <button type="submit" class="px-10 py-4 rounded-2xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/20 flex items-center gap-3">
+                            <span class="material-symbols-outlined text-lg">thumb_up</span>
+                            Express Interest
+                        </button>
+                    </form>
+                }
+                else if (Model.Status == UniSync.Core.Enums.SubmissionStatus.Linked)
+                {
+                    <button onclick="document.getElementById('approve-modal').showModal()" class="px-8 py-4 rounded-2xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg text-white">verified</span>
+                        Authorize Node
+                    </button>
+
+                    <button onclick="document.getElementById('changes-modal').showModal()" class="px-8 py-4 rounded-2xl bg-white border border-slate-200 text-slate-500 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all">
+                        Request Audit
+                    </button>
+
+                    <button onclick="document.getElementById('reject-modal').showModal()" class="px-8 py-4 rounded-2xl bg-red-50 text-red-600 text-xs font-black uppercase tracking-widest hover:bg-red-100 transition-all border border-red-100">
+                        Reject Entry
+                    </button>
+                }
+                else if (Model.Status == UniSync.Core.Enums.SubmissionStatus.Approved)
+                {
+                    <button onclick="document.getElementById('inprogress-modal').showModal()" class="px-8 py-4 rounded-2xl bg-emerald-600 text-white text-xs font-black uppercase tracking-widest hover:bg-emerald-700 transition-all flex items-center gap-2 shadow-lg shadow-emerald-900/10">
+                        <span class="material-symbols-outlined text-lg text-white">play_arrow</span>
+                        Initialize Execution
+                    </button>
+                }
+                else if (Model.Status == UniSync.Core.Enums.SubmissionStatus.InProgress)
+                {
+                    <button onclick="document.getElementById('complete-modal').showModal()" class="px-8 py-4 rounded-2xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2">
+                        <span class="material-symbols-outlined text-lg text-white">done_all</span>
+                        Finalize Mission
+                    </button>
+                }
+
+                <a href="@Url.Action("AvailableProjects", "Supervisor")" class="px-8 py-4 rounded-2xl bg-white border border-slate-200 text-slate-500 text-xs font-black uppercase tracking-widest hover:bg-slate-50 transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">arrow_back</span>
+                    Back to Feed
+                </a>
+            </div>
+        </div>
+    </header>
+
+    @if (Model.Status != UniSync.Core.Enums.SubmissionStatus.Pending && Model.Status != UniSync.Core.Enums.SubmissionStatus.UnderReview)
+    {
+        <!-- Identity Reveal Grid -->
+        <section class="glass-panel p-10 rounded-[2.5rem] border-emerald-100">
+            <div class="flex items-center gap-4 mb-10">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-900/20">
+                    <span class="material-symbols-outlined text-2xl">group</span>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-black text-slate-900 font-headline mb-1">Human Intelligence.</h3>
+                    <p class="text-sm font-medium text-slate-500">The "Reveal" protocol is authorized. User identities matched.</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="p-6 rounded-[2rem] bg-slate-50 border border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Lead Researcher</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center text-xl font-black">
+                            @(Model.Submitter?.FullName?.Substring(0,1) ?? "U")
+                        </div>
+                        <div>
+                            <p class="text-lg font-black text-slate-900">@(string.IsNullOrWhiteSpace(Model.Submitter?.FullName) ? Model.Submitter?.UserName : Model.Submitter?.FullName)</p>
+                            <p class="text-sm font-bold text-emerald-600">@Model.Submitter?.Email</p>
+                        </div>
+                    </div>
+                </div>
+
+                @if (Model.IsGroupProject && Model.GroupMembers != null && Model.GroupMembers.Any())
+                {
+                    <div class="p-6 rounded-[2rem] bg-white border border-slate-100 shadow-sm">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Research Node Members</p>
+                        <div class="flex flex-wrap gap-3">
+                            @foreach (var member in Model.GroupMembers)
+                            {
+                                <div class="px-4 py-2 rounded-xl bg-slate-50 text-[11px] font-black text-slate-600 border border-slate-100">
+                                    @member.FullName
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+    }
+
+    <!-- Content Architecture -->
+    <div class="grid grid-cols-1 xl:grid-cols-3 gap-10">
+        <div class="xl:col-span-2 space-y-10">
+            <section class="glass-panel p-10 rounded-[2.5rem]">
+                <h3 class="text-xl font-black text-slate-900 font-headline mb-6">Executive Summary.</h3>
+                <p class="text-sm font-medium text-slate-500 leading-relaxed whitespace-pre-line">@Model.ExecutiveSummary</p>
+            </section>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <section class="glass-panel p-8 rounded-[2rem]">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Problem Framework</h4>
+                    <p class="text-xs font-medium text-slate-500 leading-relaxed">@Model.ProblemStatement</p>
+                </section>
+                <section class="glass-panel p-8 rounded-[2rem]">
+                    <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Strategic Objectives</h4>
+                    <p class="text-xs font-medium text-slate-500 leading-relaxed">@Model.Objectives</p>
+                </section>
+            </div>
+
+            <section class="glass-panel p-10 rounded-[2.5rem]">
+                <h3 class="text-xl font-black text-slate-900 font-headline mb-6">Technical Architecture.</h3>
+                <div class="p-6 rounded-2xl bg-slate-900 text-emerald-400 font-mono text-xs leading-relaxed max-w-full overflow-x-auto">
+                    @Model.TechStack
+                </div>
+            </section>
+        </div>
+
+        <div class="space-y-10">
+            <section class="glass-panel p-8 rounded-[2rem]">
+                <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Project Metadata</h4>
+                <div class="space-y-6">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">Timeline</p>
+                        <p class="text-sm font-black text-slate-900">@(Model.TimelineWeeks ?? 0) Academic Weeks</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-1">Team Structure</p>
+                        <p class="text-sm font-black text-slate-900">@(Model.IsGroupProject ? "Collaborative Node" : "Individual Research")</p>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.15em] mb-3">Keywords</p>
+                        <div class="flex flex-wrap gap-2">
+                            @if (!string.IsNullOrWhiteSpace(Model.Keywords))
+                            {
+                                foreach (var kw in Model.Keywords.Split(new[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries))
+                                {
+                                    <span class="px-2 py-1 rounded bg-slate-100 text-[9px] font-black text-slate-500 uppercase tracking-widest">#@kw.Trim()</span>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="glass-panel p-8 rounded-[2rem] border-amber-100 bg-amber-50/20">
+                <h4 class="text-[10px] font-black text-amber-700 uppercase tracking-widest mb-6">Internal Notes</h4>
+                @if (!string.IsNullOrWhiteSpace(Model.SupervisorFeedback))
+                {
+                    <p class="text-xs font-medium text-amber-900 leading-relaxed italic">"@Model.SupervisorFeedback"</p>
+                }
+                else
+                {
+                    <p class="text-xs font-medium text-amber-600/50 italic">No feedback entries recorded yet.</p>
+                }
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- Premium Action Modals -->
+<dialog id="approve-modal" class="rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.25)] backdrop:bg-slate-900/60 backdrop:backdrop-blur-md w-full max-w-xl border-none p-0 overflow-hidden">
+    <div class="p-10 bg-white">
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-500 text-white flex items-center justify-center">
+                <span class="material-symbols-outlined">verified</span>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black text-slate-900 font-headline">Authorize Node</h2>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Entry: @anonymousId</p>
+            </div>
+        </div>
+
+        <form asp-action="ApproveSubmission" method="post" class="space-y-6">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="submissionId" value="@Model.Id" />
+            
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Validation Feedback</label>
+                <textarea name="feedback" placeholder="Describe the rationale for approval..." 
+                          class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/20 transition-all min-h-[140px]" required></textarea>
+            </div>
+
+            <div class="flex gap-4 pt-4">
+                <button type="submit" class="flex-1 bg-emerald-600 text-white font-black text-xs uppercase tracking-widest py-4 rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10">Authorize Submission</button>
+                <button type="button" onclick="document.getElementById('approve-modal').close()" class="px-8 bg-slate-100 text-slate-500 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all">Abort</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<dialog id="reject-modal" class="rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.25)] backdrop:bg-red-900/30 backdrop:backdrop-blur-md w-full max-w-xl border-none p-0 overflow-hidden">
+    <div class="p-10 bg-white">
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-12 h-12 rounded-2xl bg-red-600 text-white flex items-center justify-center">
+                <span class="material-symbols-outlined">gpp_maybe</span>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black text-slate-900 font-headline">Decline Entry</h2>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Action: Permanent Rejection</p>
+            </div>
+        </div>
+
+        <form asp-action="RejectSubmission" method="post" class="space-y-6">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="submissionId" value="@Model.Id" />
+            
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Audit Rejection Details</label>
+                <textarea name="feedback" placeholder="Clearly state reason for academic non-linking..." 
+                          class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-red-500/20 transition-all min-h-[140px]" required></textarea>
+            </div>
+
+            <div class="flex gap-4 pt-4">
+                <button type="submit" class="flex-1 bg-red-600 text-white font-black text-xs uppercase tracking-widest py-4 rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-900/10">Confirm Rejection</button>
+                <button type="button" onclick="document.getElementById('reject-modal').close()" class="px-8 bg-slate-100 text-slate-500 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all">Abort</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<dialog id="changes-modal" class="rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.25)] backdrop:bg-amber-900/30 backdrop:backdrop-blur-md w-full max-w-xl border-none p-0 overflow-hidden">
+    <div class="p-10 bg-white">
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center">
+                <span class="material-symbols-outlined">published_with_changes</span>
+            </div>
+            <div>
+                <h2 class="text-2xl font-black text-slate-900 font-headline">Request Audit</h2>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Protocol: Changes Required</p>
+            </div>
+        </div>
+
+        <form asp-action="RequestChanges" method="post" class="space-y-6">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="submissionId" value="@Model.Id" />
+            
+            <div class="space-y-2">
+                <label class="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Requested Rectifications</label>
+                <textarea name="feedback" placeholder="Detail specific improvements required before validation..." 
+                          class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-medium text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-amber-500/20 transition-all min-h-[140px]" required></textarea>
+            </div>
+
+            <div class="flex gap-4 pt-4">
+                <button type="submit" class="flex-1 bg-amber-600 text-white font-black text-xs uppercase tracking-widest py-4 rounded-xl hover:bg-amber-700 transition-all shadow-lg shadow-amber-900/10">Send to Associate</button>
+                <button type="button" onclick="document.getElementById('changes-modal').close()" class="px-8 bg-slate-100 text-slate-500 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-slate-200 transition-all">Abort</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<dialog id="inprogress-modal" class="rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.25)] backdrop:bg-emerald-900/30 backdrop:backdrop-blur-md w-full max-w-md border-none p-0 overflow-hidden">
+    <div class="p-10 bg-white text-center">
+        <div class="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-6">
+            <span class="material-symbols-outlined text-emerald-600 text-3xl">play_circle</span>
+        </div>
+        <h2 class="text-2xl font-black text-slate-900 font-headline mb-2">Initialize?</h2>
+        <p class="text-sm font-medium text-slate-500 mb-10 leading-relaxed">Broadcast project initialization signal. This will authorize the research node to enter active execution phase.</p>
+
+        <form asp-action="MarkInProgress" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="submissionId" value="@Model.Id" />
+            <div class="flex flex-col gap-3">
+                <button type="submit" class="w-full bg-emerald-600 text-white font-black text-xs uppercase tracking-widest py-4 rounded-xl hover:bg-emerald-700 transition-all">Begin Execution</button>
+                <button type="button" onclick="document.getElementById('inprogress-modal').close()" class="w-full bg-slate-50 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] py-4 rounded-xl hover:bg-slate-100 transition-all">Cancel</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+<dialog id="complete-modal" class="rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.25)] backdrop:bg-slate-900/80 backdrop:backdrop-blur-xl w-full max-w-md border-none p-0 overflow-hidden">
+    <div class="p-10 bg-white text-center">
+        <div class="w-16 h-16 rounded-full bg-emerald-600 text-white flex items-center justify-center mx-auto mb-6 shadow-xl shadow-emerald-900/20">
+            <span class="material-symbols-outlined text-3xl">task_alt</span>
+        </div>
+        <h2 class="text-2xl font-black text-slate-900 font-headline mb-2">Finalize Node?</h2>
+        <p class="text-sm font-medium text-slate-500 mb-10 leading-relaxed">This action will permanently close the research node as mission complete. Associated associates will be notified.</p>
+
+        <form asp-action="MarkCompleted" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="submissionId" value="@Model.Id" />
+            <div class="flex flex-col gap-3">
+                <button type="submit" class="w-full bg-slate-900 text-white font-black text-xs uppercase tracking-widest py-4 rounded-xl hover:bg-slate-800 transition-all">Complete Mission</button>
+                <button type="button" onclick="document.getElementById('complete-modal').close()" class="w-full bg-slate-50 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] py-4 rounded-xl hover:bg-slate-100 transition-all">Cancel</button>
+            </div>
+        </form>
+    </div>
+</dialog>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        (function () {
+            if (!window.signalR) {
+                return;
+            }
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl('/hubs/linking')
+                .withAutomaticReconnect()
+                .build();
+
+            let refreshTimer = null;
+            function scheduleRefresh() {
+                if (refreshTimer) {
+                    return;
+                }
+
+                refreshTimer = window.setTimeout(function () {
+                    window.location.reload();
+                }, 800);
+            }
+
+            connection.on('LinkingDataChanged', function () {
+                scheduleRefresh();
+            });
+
+            connection.start().catch(function () {
+                // Keep page working if realtime channel is unavailable.
+            });
+        })();
+    </script>
+}
