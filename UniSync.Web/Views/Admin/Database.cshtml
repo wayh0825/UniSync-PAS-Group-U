@@ -1,0 +1,173 @@
+@{
+    ViewData["Title"] = "Infrastructure Hub";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<header class="glass-panel p-10 lg:p-12 rounded-[3.5rem] relative overflow-hidden mb-10 group">
+    <div class="absolute -right-20 -top-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-[120px] group-hover:bg-emerald-400/30 transition-all duration-700"></div>
+    <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-blue-400/10 rounded-full blur-[100px] group-hover:bg-blue-400/20 transition-all duration-700"></div>
+    
+    <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-2">Cluster Infrastructure</p>
+            <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight tracking-tight">
+                Database <span class="text-emerald-600">Core.</span>
+            </h1>
+            <p class="text-lg font-medium text-slate-500 mt-4 max-w-xl">
+                High-availability relational clusters and encryption protocols.
+            </p>
+        </div>
+        <div class="hidden md:flex gap-3">
+            <span class="px-4 py-2 rounded-2xl bg-white/50 border border-slate-200/50 text-[10px] font-black uppercase tracking-widest text-slate-500 shadow-sm">Infra Admin</span>
+        </div>
+    </div>
+</header>
+
+<div class="flex flex-col xl:flex-row gap-8 mb-10">
+    <!-- Primary Cluster Controller -->
+    <section class="flex-1 glass-panel p-10 rounded-[2.5rem]">
+        <div class="flex justify-between items-start mb-10">
+            <div class="flex items-center gap-5">
+                <div class="w-14 h-14 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg shadow-slate-900/10">
+                    <span class="material-symbols-outlined text-[28px]">database</span>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900 font-headline">Main Cluster Hub</h2>
+                    <p class="text-[10px] font-black uppercase tracking-widest text-slate-400">@ViewBag.ClusterRegion • @ViewBag.ClusterZone</p>
+                </div>
+            </div>
+            <div class="px-4 py-2 rounded-xl @(ViewBag.DbConnected ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700") text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full @(ViewBag.DbConnected ? "bg-emerald-500 animate-pulse" : "bg-red-500")"></span>
+                @ViewBag.ClusterStatusLabel
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+            <!-- Health Registry -->
+            <div class="glass-card p-8 rounded-[2rem] relative overflow-hidden hover:-translate-y-2 hover:shadow-2xl hover:shadow-blue-900/10 transition-all duration-300 group flex flex-col justify-between bg-gradient-to-br from-white/60 to-white/30 backdrop-blur-xl border border-white/50">
+                <div class="absolute -right-4 -top-4 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:bg-blue-500/20 transition-all"></div>
+                <div class="relative z-10">
+                    <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6">Cluster Health</h4>
+                    <div class="mb-6">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Schema Signature</p>
+                        <span class="px-3 py-1.5 rounded-lg bg-white border border-slate-100/50 text-xs font-black text-emerald-600 font-mono shadow-sm">@ViewBag.SchemaVersion</span>
+                    </div>
+                </div>
+
+                <div class="relative z-10">
+                    <div class="flex justify-between items-end mb-2">
+                        <p class="text-[10px] font-black text-slate-900 uppercase tracking-widest">Storage Utilization</p>
+                        <p class="text-sm font-black text-slate-900">@string.Format("{0:0.00}", ViewBag.UsedStorageGb)GB <span class="text-slate-400">/ @ViewBag.CapacityGb GB</span></p>
+                    </div>
+                    <div class="w-full h-1.5 bg-slate-200/50 rounded-full overflow-hidden shadow-inner">
+                        <div class="h-full bg-emerald-500 rounded-full" style="width:@(ViewBag.StoragePercent)%"></div>
+                    </div>
+                    <p class="text-[9px] font-bold text-slate-400 mt-2">Migrations Pending: @ViewBag.PendingMigrations</p>
+                </div>
+            </div>
+
+            <!-- Redundancy Protocol -->
+            <div class="glass-card p-8 rounded-[2rem] relative overflow-hidden hover:-translate-y-2 hover:shadow-2xl hover:shadow-emerald-900/10 transition-all duration-300 group flex flex-col justify-between bg-gradient-to-br from-emerald-50/80 to-white/30 backdrop-blur-xl border border-emerald-100/50">
+                <div class="absolute -left-4 -bottom-4 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:bg-emerald-500/20 transition-all"></div>
+                <div class="relative z-10">
+                    <h4 class="text-[10px] font-black text-emerald-700 uppercase tracking-widest mb-6">Backup Redundancy</h4>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-600/20">
+                            <span class="material-symbols-outlined text-lg group-hover:scale-110 transition-transform">backup</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-black text-slate-900">@ViewBag.BackupSchedule</p>
+                            <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-[0.1em]">@ViewBag.BackupCountdown</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-4 relative z-10 mt-8">
+                    <button class="flex-1 py-4 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10">Run Snapshot</button>
+                    <button class="flex-1 py-4 rounded-xl bg-white border border-slate-200 text-slate-900 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm">Restore Host</button>
+                </div>
+            </div>
+        </div>
+
+        <section>
+            <div class="flex items-center justify-between mb-8">
+                <h3 class="text-xl font-black text-slate-900 font-headline">Protocol Log.</h3>
+            </div>
+
+            <div class="space-y-4">
+                @foreach (var log in (IEnumerable<UniSync.Web.ViewModels.DatabaseLogItem>)ViewBag.MigrationLogs)
+                {
+                    <div class="flex items-center justify-between p-4 rounded-2xl bg-white border border-slate-50 hover:border-slate-100 transition-all group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-2 h-2 rounded-full @(log.IsSuccess ? "bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.5)]" : "bg-slate-300")"></div>
+                            <div>
+                                <p class="text-sm font-black text-slate-900">@log.Name</p>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Applied by @log.By • @log.Time</p>
+                            </div>
+                        </div>
+                        <span class="px-2 py-1 bg-slate-100 text-slate-900 text-[9px] font-black font-mono rounded">@log.Ref</span>
+                    </div>
+                }
+            </div>
+        </section>
+    </section>
+
+    <!-- Side Overlays -->
+    <aside class="w-full xl:w-96 flex flex-col gap-8">
+        <!-- Telemetry Card -->
+        <article class="glass-panel p-8 rounded-[2rem] overflow-hidden relative min-h-[280px]">
+            <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">Host Telemetry</h4>
+            
+            <div class="space-y-6 relative z-10">
+                <div class="flex justify-between items-center">
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Host Connections</span>
+                    <span class="text-xl font-black text-slate-900">@ViewBag.ActiveConnections</span>
+                </div>
+                <div class="flex justify-between items-center border-y border-slate-50 py-4">
+                    <span class="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Network Latency</span>
+                    <span class="text-xl font-black text-emerald-600">@ViewBag.DbLatencyMs<span class="text-xs ml-1">MS</span></span>
+                </div>
+            </div>
+
+            <div class="absolute bottom-0 left-0 w-full h-32 flex items-end gap-1 px-4 opacity-10">
+                @for (int i = 0; i < 15; i++)
+                {
+                    <div class="flex-1 bg-emerald-600 rounded-t-sm" style="height: @(new Random().Next(20, 100))%"></div>
+                }
+            </div>
+        </article>
+
+        <!-- Engine Profile -->
+        <article class="glass-panel p-10 rounded-[2.5rem] bg-slate-900 text-white relative flex flex-col justify-between min-h-[320px]">
+            <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/20 to-transparent"></div>
+            <div class="relative z-10">
+                <p class="text-[9px] font-black text-emerald-400 uppercase tracking-[0.2em] mb-4">Core Engine Profile</p>
+                <h2 class="text-3xl font-black font-headline mb-4">@ViewBag.EngineName</h2>
+                <div class="flex gap-2 mb-8">
+                    <span class="px-2 py-1 rounded bg-white/10 text-[9px] font-black uppercase tracking-widest">@ViewBag.EngineEdition</span>
+                    <span class="px-2 py-1 rounded bg-white/10 text-[9px] font-black uppercase tracking-widest">@ViewBag.EngineMode</span>
+                </div>
+                <p class="text-xs font-medium text-slate-400 leading-relaxed italic">"@ViewBag.EngineDescription"</p>
+            </div>
+            
+            <div class="relative z-10 pt-8 flex gap-4">
+                <button class="flex-1 py-3 rounded-xl bg-white text-slate-900 text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all">Configure Hub</button>
+                <button class="w-12 h-12 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-900/40 hover:bg-emerald-700 transition-all">
+                    <span class="material-symbols-outlined">settings</span>
+                </button>
+            </div>
+        </article>
+
+        <!-- Physical Architecture -->
+        <article class="glass-panel p-6 rounded-[2rem] bg-slate-800 text-white relative overflow-hidden min-h-[140px] flex items-end">
+            <div class="absolute inset-0 opacity-20 grayscale">
+                <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=600" class="w-full h-full object-cover" />
+            </div>
+            <div class="relative z-10">
+                <h3 class="text-xs font-black uppercase tracking-widest mb-1">Architecture Node</h3>
+                <p class="text-xs font-medium text-slate-400">@ViewBag.PhysicalNodeStatus • @ViewBag.PhysicalNodeNote</p>
+            </div>
+        </article>
+    </aside>
+</div>

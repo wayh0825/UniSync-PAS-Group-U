@@ -1,0 +1,734 @@
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using UniSync.Core.Data
+@using UniSync.Core.Entities
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - UniSync</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        slate: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            500: '#64748b',
+                            50: '#f8fafc',
+                        }
+                    },
+                    fontFamily: {
+                        headline: ["Outfit", "sans-serif"],
+                        body: ["Plus Jakarta Sans", "sans-serif"],
+                    },
+                    keyframes: {
+                        'fade-in-up': {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        'slide-down-blur': {
+                            '0%': { opacity: '0', transform: 'translateY(-10px) scale(0.98)', filter: 'blur(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)', filter: 'blur(0)' },
+                        }
+                    },
+                    animation: {
+                        'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
+                        'slide-down-blur': 'slide-down-blur 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* -----------------------
+           Global Dark Theme Framework
+           ----------------------- */
+        body {
+            background-color: #0b1120 !important;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(30, 41, 59, 0.5) 0px, transparent 50%) !important;
+            min-height: 100vh;
+            color: #f1f5f9;
+        }
+
+        /* Enforce Dark Text Colors */
+        h1, h2, h3, h4, h5, h6, 
+        .text-slate-900, .text-slate-800, .text-gray-900 {
+            color: #f8fafc !important;
+        }
+
+        p, span, .text-slate-700, .text-slate-600, .text-slate-500, .text-slate-400 {
+            color: #94a3b8 !important;
+        }
+
+        /* Protect important highlights */
+        .text-emerald-600, .text-emerald-700 {
+            color: #34d399 !important;
+        }
+        .text-emerald-900 {
+            color: #a7f3d0 !important;
+        }
+        .text-white, .sidebar-active {
+            color: #ffffff !important;
+        }
+        .text-red-600, .text-danger { color: #f87171 !important; }
+        
+        /* Badges & Alert Balancers */
+        .text-emerald-800 { color: #6ee7b7 !important; }
+        .text-blue-800 { color: #93c5fd !important; }
+        .text-blue-600 { color: #60a5fa !important; }
+        .bg-blue-50, .bg-blue-100 { background-color: rgba(59, 130, 246, 0.1) !important; border-color: rgba(59, 130, 246, 0.2) !important; }
+        .text-red-800 { color: #fca5a5 !important; }
+        .bg-red-50, .bg-red-100 { background-color: rgba(239, 68, 68, 0.1) !important; border-color: rgba(239, 68, 68, 0.2) !important; }
+        .text-amber-800, .text-yellow-800 { color: #fde047 !important; }
+        .text-amber-600, .text-yellow-600 { color: #fbbf24 !important; }
+        .bg-amber-50, .bg-yellow-50 { background-color: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.2) !important; }
+
+        /* Background and Border Dark Inversions */
+        .bg-white, .bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-slate-200 {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+        }
+        
+        .border-slate-100, .border-slate-200, .border-b, .border-t {
+            border-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .bg-slate-900 {
+            background-color: #020617 !important;
+            border-color: #1e293b !important;
+        }
+        
+        .bg-emerald-50, .bg-emerald-100 {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+            border-color: rgba(16, 185, 129, 0.2) !important;
+        }
+        
+        div[class*="shadow-emerald"] {
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.2) !important;
+        }
+
+        /* Glass Components - Custom Dark Formats */
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.8) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.2) !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+
+        /* Toast Animations */
+        @@keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @@keyframes slideOutRight {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .animate-slide-in-right { animation: slideInRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        .animate-slide-out-right { animation: slideOutRight 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+
+        /* Hover Interceptors */
+        [class*="hover:bg-slate-50"]:hover, 
+        [class*="hover:bg-slate-100"]:hover, 
+        [class*="hover:bg-white"]:hover, 
+        [class*="hover:bg-slate-200"]:hover {
+            background-color: #334155 !important;
+        }
+
+        [class*="hover:bg-emerald-50"]:hover {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+        }
+
+        [class*="hover:bg-slate-900"]:hover {
+            background-color: #020617 !important;
+        }
+
+        [class*="hover:text-slate-900"]:hover,
+        [class*="hover:text-slate-800"]:hover {
+            color: #ffffff !important;
+        }
+
+        .group:hover .group-hover\:text-white { color: #ffffff !important; }
+        .group:hover .group-hover\:bg-slate-900 { background-color: #020617 !important; }
+        .group:hover .group-hover\:text-emerald-600 { color: #34d399 !important; }
+
+        .nav-link-premium {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            color: #94a3b8 !important;
+        }
+
+        .nav-link-premium:hover:not(.sidebar-active) {
+            background: rgba(255, 255, 255, 0.05) !important;
+            transform: translateX(5px);
+            color: #f8fafc !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .nav-link-premium:hover .material-symbols-outlined {
+            color: #34d399 !important;
+        }
+
+        /* Sidebar Interface */
+        .sidebar-active {
+            background: #020617 !important;
+            color: #34d399 !important;
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5) !important;
+            position: relative;
+        }
+
+        .sidebar-active .material-symbols-outlined {
+            color: #34d399 !important;
+        }
+
+        .sidebar-active::after {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: #34d399;
+            border-radius: 4px;
+            box-shadow: 0 0 10px #34d399;
+        }
+
+        /* Top Command Nav Elements */
+        #notif-dropdown {
+            background: #1e293b !important;
+            border: 1px solid #334155 !important;
+        }
+        #notif-dropdown .bg-slate-50, #notif-list .bg-white {
+            background: #0f172a !important;
+            border-color: #334155 !important;
+        }
+        #notif-dropdown a:hover {
+            background: rgba(16, 185, 129, 0.1) !important;
+        }
+        #notif-list { background-color: #0f172a !important; }
+
+        /* Form Inputs & Controls */
+        input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+            background-color: #0f172a !important;
+            border: 1px solid #334155 !important;
+            color: #f8fafc !important;
+        }
+        input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus {
+            border-color: #34d399 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #34d399 !important;
+        }
+        input::placeholder, textarea::placeholder {
+            color: #475569 !important;
+        }
+
+        /* Misc */
+        .page-transition-enter {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: content-reveal 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @@keyframes content-reveal {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #uplink-progress {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #10b981, #34d399);
+            z-index: 1000;
+            transition: width 0.3s ease;
+            width: 0%;
+            display: none;
+        }
+
+        @@keyframes sidebar-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3); }
+            50% { transform: scale(1.02); box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.4); }
+        }
+
+        .sidebar-active.animate-pulse-limited {
+            animation: sidebar-pulse 2s ease-in-out infinite;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="font-body text-slate-100 antialiased overflow-x-hidden">
+    @{
+        var layoutUser = User.Identity?.IsAuthenticated == true ? await UserManager.GetUserAsync(User) : null;
+        var unreadCount = layoutUser is null ? 0 : await DbContext.AppNotifications.CountAsync(n => n.RecipientId == layoutUser.Id && !n.IsRead);
+        
+        string userRole = "Guest";
+        if (User.IsInRole("Student")) userRole = "Student";
+        else if (User.IsInRole("Supervisor")) userRole = "Supervisor";
+        else if (User.IsInRole("Administrator")) userRole = "Administrator";
+    }
+    
+    <div id="uplink-progress"></div>
+
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="flex min-h-screen">
+            <!-- Sidebar Interface -->
+            <aside id="main-sidebar" class="w-[280px] hidden lg:block flex-shrink-0 fixed h-full z-50 p-6 transition-all duration-500">
+                <div class="glass-panel h-full rounded-[2.5rem] flex flex-col p-8 overflow-hidden">
+                    <div class="flex items-center gap-3 mb-12">
+                        <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-900/20">
+                            <span class="material-symbols-outlined text-xl">hub</span>
+                        </div>
+                        <div>
+                            <span class="text-xl font-black text-slate-900 font-headline tracking-tight">UniSync</span>
+                            <p class="text-[10px] font-bold text-slate-500 mt-1 whitespace-nowrap">PAS By Group U</p>
+                        </div>
+                    </div>
+
+                    <nav class="flex-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 px-1">Navigation</p>
+                        
+
+                        @if (User.IsInRole("Student"))
+                        {
+                            <a href="@Url.Action("Dashboard", "Student")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(ViewData["Title"]?.ToString() == "Student Workspace" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                                <span class="material-symbols-outlined text-lg">dashboard</span>
+                                Dashboard
+                            </a>
+                            <a href="@Url.Action("MySubmissions", "Student")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(ViewData["Title"]?.ToString() == "Submission Timeline" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                                <span class="material-symbols-outlined text-lg">inventory_2</span>
+                                My Projects
+                            </a>
+                        }
+
+                        @if (User.IsInRole("Supervisor"))
+                        {
+                            <a href="@Url.Action("Dashboard", "Supervisor")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(ViewData["Title"]?.ToString() == "Expertise Hub" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                                <span class="material-symbols-outlined text-lg">tune</span>
+                                Expertise Hub
+                            </a>
+                            <a href="@Url.Action("AvailableProjects", "Supervisor")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(ViewData["Title"]?.ToString() == "Available Projects" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                                <span class="material-symbols-outlined text-lg">leak_add</span>
+                                Available Projects
+                            </a>
+                            <a href="@Url.Action("LinkedProjects", "Supervisor")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(ViewData["Title"]?.ToString() == "Linked Projects" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                                <span class="material-symbols-outlined text-lg">account_tree</span>
+                                My Supervision
+                            </a>
+                        }
+
+                        @if (User.IsInRole("Administrator"))
+                        {
+                            <a href="@Url.Action("Index", "Admin")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(ViewData["Title"]?.ToString() == "Admin Dashboard" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                                <span class="material-symbols-outlined text-lg">admin_panel_settings</span>
+                                System Control
+                            </a>
+                            <a href="@Url.Action("AuditLogs", "Admin")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(ViewData["Title"]?.ToString() == "Audit Logs" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                                <span class="material-symbols-outlined text-lg">history_edu</span>
+                                Event Logs
+                            </a>
+                        }
+
+                        @if (User.IsInRole("Student") || User.IsInRole("Supervisor"))
+                        {
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-8 mb-6 px-1">Communications</p>
+                            
+
+                            <a href="@Url.Action("Messages", User.IsInRole("Supervisor") ? "Supervisor" : "Student")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(ViewData["Title"]?.ToString() == "Messages" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                                <span class="material-symbols-outlined text-lg font-bold">forum</span>
+                                Message Center
+                            </a>
+                        }
+
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-8 mb-6 px-1">Account</p>
+
+                        <a href="@Url.Action("Profile", "Account")" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(ViewData["Title"]?.ToString() == "My Profile" ? "sidebar-active" : "text-slate-500 hover:bg-white hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">person</span>
+                            My Profile
+                        </a>
+                    </nav>
+
+                    <div class="mt-auto pt-8 border-t border-slate-100 flex flex-col gap-4">
+                        <form asp-controller="Account" asp-action="Logout" asp-route-returnUrl="@Url.Action("Index", "Home")">
+                            <button type="submit" class="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-slate-900 text-white font-black text-[13px] hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10">
+                                <span class="material-symbols-outlined text-lg">logout</span>
+                                Logout
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Workspace Area -->
+            <main id="uplink-workspace" class="flex-1 lg:ml-[280px] p-6 md:p-10 lg:p-12 page-transition-enter">
+                <!-- Global Command Header -->
+                <div id="workspace-content" class="transition-all duration-500">
+                    <nav class="flex items-center justify-between mb-12 animate-fade-in-up relative z-50">
+                        <div class="hidden md:block">
+                            <div class="flex items-center gap-2.5 mb-1.5">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Academic Portal</p>
+                                <span class="w-1 h-1 rounded-full bg-slate-700"></span>
+                                <span class="px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-500 uppercase tracking-widest">@userRole</span>
+                            </div>
+                            <h2 class="text-lg font-black text-slate-900 font-headline">Project Workspace</h2>
+                        </div>
+
+                        <div class="flex items-center gap-4 lg:gap-8">
+                            @if (User.IsInRole("Student"))
+                            {
+                                <!-- Search bar removed as per user request -->
+                            }
+
+                            <div class="flex items-center gap-3">
+                                <div class="relative">
+                                    <button id="notif-toggle" class="relative w-11 h-11 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 hover:bg-emerald-600 hover:text-white hover:border-emerald-500 transition-all shadow-sm group">
+                                        <span class="material-symbols-outlined group-hover:rotate-12 transition-transform">notifications</span>
+                                        @if(unreadCount > 0) {
+                                            <span id="header-notif-dot" class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 bg-emerald-500 border-2 border-[#1e293b] rounded-full text-[10px] font-black text-white flex items-center justify-center shadow-lg animate-pulse">@unreadCount</span>
+                                        } else {
+                                            <span id="header-notif-dot" class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 bg-emerald-500 border-2 border-[#1e293b] rounded-full text-[10px] font-black text-white flex items-center justify-center shadow-lg hidden">0</span>
+                                        }
+                                    </button>
+                                    
+                                    <!-- Dropdown Panel -->
+                                    <div id="notif-dropdown" class="hidden absolute right-0 mt-4 w-80 lg:w-[420px] bg-slate-900/95 backdrop-blur-xl rounded-[2.5rem] border border-white/10 shadow-[0_25px_60px_rgba(0,0,0,0.4)] z-[999] overflow-hidden origin-top-right">
+                                        <div class="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-slate-800/20">
+                                            <div>
+                                                <h3 class="text-xs font-black text-white font-headline uppercase tracking-[0.2em] leading-none">Notifications</h3>
+                                                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Live Signals</p>
+                                            </div>
+                                            <div class="flex items-center gap-3">
+                                                <div id="notif-count-badge" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[9px] font-black @(unreadCount == 0 ? "hidden" : "") animate-pulse shadow-lg shadow-emerald-600/20">@unreadCount NEW</div>
+                                                <button id="mark-read-list" class="text-[9px] font-black text-emerald-400 uppercase tracking-widest hover:text-white transition-colors bg-emerald-900/20 px-2 py-1 rounded-md border border-emerald-500/20">MARK ALL READ</button>
+                                            </div>
+                                        </div>
+                                        <div id="notif-list" class="max-h-[450px] overflow-y-auto custom-scrollbar bg-transparent">
+                                             <div class="p-16 text-center">
+                                                 <div class="inline-block animate-spin w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full mb-4"></div>
+                                                 <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Awaiting Link...</p>
+                                             </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="hidden sm:block w-px h-6 bg-slate-700/50 mx-2 lg:mx-4"></div>
+                                <div class="hidden sm:flex flex-col items-end min-w-[90px]">
+                                    <span class="text-[11px] font-black text-slate-300 uppercase tracking-widest" id="global-header-date">@DateTime.Now.ToString("dd MMM yyyy")</span>
+                                    <span class="text-[9px] font-bold text-slate-500 tracking-wider" id="global-header-time">--:--:-- --</span>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+
+                    @RenderBody()
+                </div>
+            </main>
+        </div>
+    }
+    else
+    {
+        <!-- Public Layout (Mainly Landing Page) -->
+        <nav class="fixed top-0 w-full z-50 flex justify-between items-center px-6 md:px-12 py-6 bg-[#0b1120]/60 backdrop-blur-md border-b border-white/5">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white">
+                    <span class="material-symbols-outlined text-xl">hub</span>
+                </div>
+                <span class="text-xl font-black text-white font-headline tracking-tighter">UniSync.</span>
+            </div>
+            
+            <div class="flex items-center gap-8">
+                <a href="#features" class="hidden md:block text-[13px] font-bold text-slate-400 hover:text-emerald-400 transition-all">Guidelines</a>
+                <a href="#network" class="hidden md:block text-[13px] font-bold text-slate-400 hover:text-emerald-400 transition-all">Network</a>
+                <a href="@Url.Action("Login", "Account")" class="bg-emerald-600 text-white px-6 py-2.5 rounded-xl text-sm font-black hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-900/20">Connect</a>
+            </div>
+        </nav>
+
+        <main class="pt-24 min-h-screen">
+            @RenderBody()
+        </main>
+    }
+
+    <!-- Standard Backdrop Effects -->
+    <div class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none opacity-40">
+        <div class="absolute top-[-10%] right-[-5%] w-[40rem] h-[40rem] bg-emerald-100 rounded-full blur-[100px]"></div>
+        <div class="absolute bottom-[-5%] left-[-2%] w-[35rem] h-[35rem] bg-slate-200 rounded-full blur-[80px]"></div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-24 right-8 z-[100] w-80 space-y-3 pointer-events-none"></div>
+
+    <!-- Global Modal Portal -->
+    @await RenderSectionAsync("GlobalModals", required: false)
+    
+    @await RenderSectionAsync("Scripts", required: false)
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        const signalConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/signal")
+            .withAutomaticReconnect()
+            .build();
+
+        signalConnection.on("ReceiveSignal", (type, content) => {
+            const headerDot = document.getElementById('header-notif-dot');
+            const countBadge = document.getElementById('notif-count-badge');
+            if (headerDot) headerDot.classList.remove('hidden');
+            if (countBadge) countBadge.classList.remove('hidden');
+            
+            showToast(type, content);
+        });
+
+        signalConnection.on("ReceiveMessage", (senderId, senderName, content, sentAt) => {
+            // Only show toast if window is not already chat-active with this sender
+            // But for simplicity, we show it everywhere except maybe the Messages page itself check
+            if (!window.location.pathname.includes('/Messages')) {
+                showToast("Message", `New message from ${senderName}`);
+            }
+        });
+
+        function showToast(type, content) {
+            const container = document.getElementById('toast-container');
+            if (!container) return;
+
+            const toast = document.createElement('div');
+            toast.className = "glass-card p-5 mb-3 flex items-center gap-4 animate-slide-in-right relative overflow-hidden group border-emerald-500/20 pointer-events-auto cursor-pointer";
+            
+            let icon = 'notifications';
+            if (type === 'Submission') icon = 'description';
+            if (type === 'Message') icon = 'forum';
+            if (type === 'Link') icon = 'verified';
+
+            toast.innerHTML = `
+                <div class="absolute inset-0 bg-emerald-500/5 translate-x-[-100%] group-hover:translate-x-0 transition-transform duration-500"></div>
+                <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shrink-0 z-10">
+                    <span class="material-symbols-outlined text-[20px]">${icon}</span>
+                </div>
+                <div class="flex-1 min-w-0 z-10">
+                    <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">${type} Update</p>
+                    <p class="text-xs font-bold text-slate-100 truncate">${content}</p>
+                </div>
+                <button class="w-8 h-8 rounded-lg hover:bg-white/5 flex items-center justify-center text-slate-500 transition-all z-10">
+                    <span class="material-symbols-outlined text-[16px]">close</span>
+                </button>
+            `;
+            
+            toast.onclick = (e) => {
+                if(e.target.closest('button')) {
+                    toast.classList.add('animate-slide-out-right');
+                    setTimeout(() => toast.remove(), 500);
+                } else {
+                    // Navigate to notifications or relevant page
+                    window.location.href = type === 'Message' ? '@Url.Action("Messages", "Student")' : '@Url.Action("Notifications", "Student")';
+                }
+            };
+
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                if(toast.parentElement) {
+                    toast.classList.add('animate-slide-out-right');
+                    setTimeout(() => toast.remove(), 500);
+                }
+            }, 6000);
+        }
+
+        signalConnection.start()
+            .then(() => console.log("Real-time signal node active."))
+            .catch(err => console.error("Signal node failure:", err));
+
+        // Dropdown Logic
+        (() => {
+            const btn = document.getElementById('notif-toggle');
+            const dropdown = document.getElementById('notif-dropdown');
+            const list = document.getElementById('notif-list');
+            const dot = document.getElementById('header-notif-dot');
+            const badge = document.getElementById('notif-count-badge');
+            let isOpen = false;
+
+            const toggle = async (forceClose = false) => {
+                if (forceClose) isOpen = true;
+                if (!isOpen) {
+                    dropdown.classList.remove('hidden');
+                    dropdown.classList.add('animate-slide-down-blur');
+                    await loadNotifs();
+                    if(dot) dot.classList.add('hidden');
+                    if(badge) badge.classList.add('hidden');
+                } else {
+                    dropdown.classList.remove('animate-slide-down-blur');
+                    dropdown.classList.add('opacity-0');
+                    setTimeout(() => {
+                        dropdown.classList.add('hidden');
+                        dropdown.classList.remove('opacity-0');
+                    }, 300);
+                }
+                isOpen = !isOpen;
+            };
+
+            const loadNotifs = async () => {
+                try {
+                    const res = await fetch('@Url.Action("GetRecentNotifications", "Account")');
+                    const data = await res.json();
+                    
+                    if (data.length === 0) {
+                        list.innerHTML = `
+                            <div class="p-12 text-center">
+                                <span class="material-symbols-outlined text-slate-200 text-3xl mb-4">sensors_off</span>
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">No Active Signals</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    list.innerHTML = data.map(n => `
+                        <a href="/Account/OpenNotification?id=${n.id}" class="block p-7 border-b border-white/5 hover:bg-emerald-500/5 transition-all group relative ${!n.isRead ? 'bg-emerald-500/[0.03]' : ''}">
+                            <div class="flex gap-5">
+                                <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-500 group-hover:bg-emerald-600 group-hover:text-white transition-all shadow-inner">
+                                    <span class="material-symbols-outlined text-xl">
+                                        ${n.typeLabel === 'Submission' ? 'description' : (n.typeLabel === 'Message' ? 'forum' : 'notifications')}
+                                    </span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <h4 class="text-[13px] font-black text-slate-100 truncate group-hover:text-emerald-400 transition-colors">${n.title}</h4>
+                                        <span class="text-[9px] font-bold text-slate-500 bg-slate-900 border border-white/5 px-2 py-0.5 rounded-md">${n.timeLabel}</span>
+                                    </div>
+                                    <p class="text-[11px] font-medium text-slate-500 line-clamp-2 leading-relaxed">${n.message}</p>
+                                    <div class="flex items-center gap-3 mt-4">
+                                        <span class="text-[8px] font-black uppercase tracking-[0.2em] text-emerald-500/80">${n.typeLabel} Service</span>
+                                        ${!n.isRead ? '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.4)] animate-pulse"></span>' : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    `).join('');
+                } catch (err) { 
+                    console.error("Failed to load signals:", err);
+                    list.innerHTML = `
+                        <div class="p-12 text-center">
+                            <span class="material-symbols-outlined text-slate-500 text-3xl mb-4">error</span>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Failed to load feed</p>
+                        </div>
+                    `;
+                }
+            };
+
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggle();
+            });
+            document.addEventListener('click', (e) => {
+                if (isOpen && !dropdown.contains(e.target)) toggle(true);
+            });
+
+            const markAllBtn = document.getElementById('mark-read-list');
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    try {
+                        await fetch('@Url.Action("MarkAllAsRead", "Account")', { method: 'POST' });
+                        const dot = document.getElementById('header-notif-dot');
+                        const badge = document.getElementById('notif-count-badge');
+                        if (dot) dot.classList.add('hidden');
+                        if (badge) badge.classList.add('hidden');
+                        await loadNotifs();
+                    } catch(err) { }
+                });
+            }
+        })();
+
+        // --- Uplink Smooth Navigation Protocol ---
+        (function() {
+            const progress = document.getElementById('uplink-progress');
+            const main = document.getElementById('uplink-workspace');
+            
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (!link || !link.href || link.target === '_blank' || link.href.includes('#')) return;
+                if (!link.href.startsWith(window.location.origin)) return;
+                
+                // Trigger transition if it's an internal dashboard navigation
+                progress.style.display = 'block';
+                setTimeout(() => progress.style.width = '70%', 10);
+                
+                if (main) {
+                    main.style.opacity = '0.5';
+                    main.style.filter = 'blur(2px)';
+                    main.style.transition = 'all 0.4s ease';
+                }
+            });
+
+            window.addEventListener('beforeunload', function() {
+                progress.style.width = '100%';
+            });
+        })();
+
+        // Live Date & Time Tracker
+        (function() {
+            const timeEl = document.getElementById('global-header-time');
+            if(!timeEl) return;
+            
+            function updateTime() {
+                const now = new Date();
+                timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+            updateTime();
+            setInterval(updateTime, 1000);
+        })();
+    </script>
+</body>
+</html>

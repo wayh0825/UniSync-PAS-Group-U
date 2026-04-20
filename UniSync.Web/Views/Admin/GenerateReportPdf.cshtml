@@ -1,0 +1,415 @@
+@model UniSync.Web.ViewModels.AdminReportViewModel
+@{
+    Layout = null;
+    var generatedLocal = Model.GeneratedAtUtc.ToLocalTime();
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>UniSync - Admin Report</title>
+    <style>
+        :root {
+            --ink-900: #0f172a;
+            --ink-700: #334155;
+            --ink-500: #64748b;
+            --line-200: #d9e2f0;
+            --panel: #ffffff;
+            --blue: #2563eb;
+            --cyan: #06b6d4;
+            --violet: #7c3aed;
+            --emerald: #10b981;
+            --amber: #f59e0b;
+            --rose: #f43f5e;
+        }
+        body {
+            font-family: "Plus Jakarta Sans", Arial, sans-serif;
+            margin: 0;
+            padding: 24px;
+            color: var(--ink-900);
+            background:
+                radial-gradient(circle at 10% 10%, rgba(37, 99, 235, 0.20), transparent 42%),
+                radial-gradient(circle at 88% 18%, rgba(6, 182, 212, 0.18), transparent 40%),
+                radial-gradient(circle at 82% 82%, rgba(124, 58, 237, 0.12), transparent 35%),
+                linear-gradient(150deg, #ecf3ff 0%, #f0fffa 55%, #f7f5ff 100%);
+            -webkit-font-smoothing: antialiased;
+        }
+        .container {
+            max-width: 980px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.99) 100%);
+            border: 1px solid #cddaf4;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow:
+                0 26px 58px rgba(15, 23, 42, 0.12),
+                0 10px 22px rgba(37, 99, 235, 0.10);
+            position: relative;
+            overflow: hidden;
+        }
+        .container::before {
+            content: "";
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            top: -190px;
+            right: -140px;
+            border-radius: 50%;
+            background: radial-gradient(circle at center, rgba(37, 99, 235, 0.22), rgba(37, 99, 235, 0));
+            pointer-events: none;
+        }
+        h1 {
+            margin: 0;
+            font-size: 34px;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+        .muted {
+            color: #dbeafe;
+            font-size: 13px;
+            margin: 8px 0 0;
+        }
+        .meta {
+            margin: 18px 0;
+            font-size: 13px;
+            color: var(--ink-700);
+            background: linear-gradient(90deg, #eef4ff 0%, #f1fbff 100%);
+            border: 1px solid #d5e5ff;
+            border-radius: 12px;
+            padding: 10px 14px;
+        }
+        .hero {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 12px;
+            background: linear-gradient(132deg, #0f172a 0%, #1e3a8a 48%, #0e7490 100%);
+            border-radius: 18px;
+            padding: 20px 22px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(110deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+            pointer-events: none;
+        }
+        .pill {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #0f172a;
+            background: linear-gradient(90deg, #fef3c7 0%, #fde68a 100%);
+            padding: 8px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+            box-shadow: inset 0 0 0 1px rgba(146, 64, 14, 0.15);
+            position: relative;
+            z-index: 2;
+        }
+        .hero-title {
+            color: #ffffff;
+            position: relative;
+            z-index: 2;
+        }
+        .hero-meta {
+            color: #bfdbfe;
+            font-size: 12px;
+            margin-top: 8px;
+            letter-spacing: 0.02em;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 18px;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+        th, td {
+            border: 1px solid var(--line-200);
+            padding: 11px 12px;
+            text-align: left;
+            font-size: 13px;
+        }
+        th {
+            background: linear-gradient(90deg, #eaf2ff 0%, #f0f9ff 100%);
+            color: #1e293b;
+            font-weight: 800;
+            letter-spacing: 0.01em;
+        }
+        tbody tr:nth-child(odd) {
+            background: #fbfdff;
+        }
+        tbody tr:hover {
+            background: #f2f8ff;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+        .card {
+            border: 1px solid #d7e3f8;
+            border-radius: 16px;
+            padding: 14px;
+            background: var(--panel);
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+        }
+        .card h3 {
+            margin: 0 0 12px;
+            font-size: 15px;
+            letter-spacing: 0.01em;
+        }
+        .card.users {
+            background: linear-gradient(160deg, rgba(37, 99, 235, 0.08), rgba(6, 182, 212, 0.06) 55%, rgba(255, 255, 255, 0.95));
+        }
+        .card.submissions {
+            background: linear-gradient(160deg, rgba(124, 58, 237, 0.08), rgba(244, 63, 94, 0.08) 55%, rgba(255, 255, 255, 0.95));
+        }
+        .kpi-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 7px 0;
+            border-bottom: 1px dashed rgba(148, 163, 184, 0.35);
+            font-size: 13px;
+            color: var(--ink-700);
+        }
+        .kpi-item:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+        .kpi-value {
+            font-weight: 800;
+            color: var(--ink-900);
+        }
+        .section-title {
+            margin: 8px 0 10px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.11em;
+            text-transform: uppercase;
+            color: #1d4ed8;
+        }
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+        .btn {
+            border: 0;
+            border-radius: 22px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.18s ease, box-shadow 0.18s ease;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, var(--blue), var(--cyan));
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+        }
+        .btn-light {
+            background: linear-gradient(90deg, #e2e8f0, #f1f5f9);
+            color: #0f172a;
+            text-decoration: none;
+            display: inline-block;
+            border: 1px solid #cbd5e1;
+        }
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0 14px;
+        }
+        .badge {
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 10px;
+            border-radius: 999px;
+            border: 1px solid transparent;
+            color: #0f172a;
+        }
+        .badge.blue {
+            background: rgba(37, 99, 235, 0.12);
+            border-color: rgba(37, 99, 235, 0.2);
+        }
+        .badge.emerald {
+            background: rgba(16, 185, 129, 0.12);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+        .badge.amber {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.25);
+        }
+        .footer-note {
+            margin-top: 14px;
+            font-size: 11px;
+            color: var(--ink-500);
+            text-align: right;
+        }
+        .accent-line {
+            height: 5px;
+            border-radius: 999px;
+            background: linear-gradient(90deg, var(--blue), var(--cyan), var(--violet), var(--rose));
+            margin-bottom: 14px;
+        }
+        @@media print {
+            body {
+                background: #fff;
+                padding: 0;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .container {
+                border: 0;
+                border-radius: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+            .actions {
+                display: none;
+            }
+            .container::before {
+                display: none;
+            }
+            .btn:hover {
+                transform: none;
+            }
+            .card {
+                box-shadow: none;
+            }
+        }
+        @@media (max-width: 720px) {
+            body {
+                padding: 14px;
+            }
+            .container {
+                padding: 16px;
+                border-radius: 16px;
+            }
+            .hero {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="actions">
+            <button class="btn btn-primary" onclick="window.print()">Print / Save as PDF</button>
+            <a class="btn btn-light" href="@Url.Action("Index", "Admin")">Back to Dashboard</a>
+        </div>
+
+        <div class="hero">
+            <div class="hero-title">
+                <h1>UniSync - Admin Summary Report</h1>
+                <p class="muted">Generated report snapshot for administrative review.</p>
+                <div class="hero-meta">Prepared for leadership, audit, and allocation monitoring</div>
+            </div>
+            <span class="pill">PDF READY</span>
+        </div>
+        <p class="meta"><strong>Generated At:</strong> @generatedLocal.ToString("yyyy-MM-dd HH:mm:ss")</p>
+        <div class="accent-line"></div>
+
+        <div class="badge-row">
+            <span class="badge blue">Live Snapshot</span>
+            <span class="badge emerald">Data Integrity Checked</span>
+            <span class="badge amber">Executive View</span>
+        </div>
+
+        <div class="grid">
+            <div class="card users">
+                <h3>Users</h3>
+                <div class="kpi-item"><span>Total Users</span><span class="kpi-value">@Model.TotalUsers</span></div>
+                <div class="kpi-item"><span>Students</span><span class="kpi-value">@Model.StudentCount</span></div>
+                <div class="kpi-item"><span.Supervisors</span><span class="kpi-value">@Model.SupervisorCount</span></div>
+                <div class="kpi-item"><span>Administrators</span><span class="kpi-value">@Model.AdminCount</span></div>
+                <div class="kpi-item"><span>Module Leaders</span><span class="kpi-value">@Model.LeaderCount</span></div>
+            </div>
+            <div class="card submissions">
+                <h3>Submissions</h3>
+                <div class="kpi-item"><span>Total Submissions</span><span class="kpi-value">@Model.TotalSubmissions</span></div>
+                <div class="kpi-item"><span>Pending</span><span class="kpi-value">@Model.PendingSubmissions</span></div>
+                <div class="kpi-item"><span>Linked</span><span class="kpi-value">@Model.LinkedSubmissions</span></div>
+                <div class="kpi-item"><span>Link Rate</span><span class="kpi-value">@Model.LinkRatePercent.ToString("0.00")%</span></div>
+                <div class="kpi-item"><span>Interest Events</span><span class="kpi-value">@Model.LinkInterestEvents</span></div>
+            </div>
+        </div>
+
+        <div class="section-title">Platform Health Metrics</div>
+        <table>
+            <thead>
+                <tr>
+                    <th colspan="2">Platform Metrics</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Research Areas</td>
+                    <td>@Model.ExpertiseDomainsCount</td>
+                </tr>
+                <tr>
+                    <td>Total Users</td>
+                    <td>@Model.TotalUsers</td>
+                </tr>
+                <tr>
+                    <td>Total Submissions</td>
+                    <td>@Model.TotalSubmissions</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="section-title">Top Research Areas</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Top Research Areas</th>
+                    <th>Submission Count</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.TopExpertiseDomains.Any())
+                {
+                    foreach (var area in Model.TopExpertiseDomains)
+                    {
+                        <tr>
+                            <td>@area.Name</td>
+                            <td>@area.SubmissionCount</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="2">No research area data available.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <div class="footer-note">UniSync • Confidential Administrative Report</div>
+    </div>
+
+    <script>
+        window.addEventListener('load', function () {
+            setTimeout(function () {
+                window.print();
+            }, 350);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+@{
+    ViewData["Title"] = "System Settings";
+    Layout = "_AdminLayout";
+}
+
+<!-- Page Header -->
+<header class="glass-panel p-10 rounded-[3rem] relative overflow-hidden mb-10">
+    <div class="absolute -right-20 -top-20 w-80 h-80 bg-emerald-600/5 rounded-full blur-[100px]"></div>
+    <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div class="relative z-10">
+            <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight">
+                System <span class="text-emerald-600">Settings.</span>
+            </h1>
+            <p class="text-lg font-medium text-slate-500 max-w-2xl mt-4">
+                Manage global application configuration and limits.
+            </p>
+        </div>
+    </div>
+</header>
+
+@if (TempData["SettingsSaved"] is string savedMessage)
+{
+    <div class="mb-10 rounded-2xl border border-emerald-100 bg-emerald-50 px-6 py-4 text-emerald-700 font-bold flex items-center gap-3 animate-fade-in-up">
+        <span class="material-symbols-outlined">verified</span>
+        @savedMessage
+    </div>
+}
+
+<form id="settings-form" asp-action="SaveSettings" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="maintenanceModeEnabled" name="maintenanceModeEnabled" value="@ViewBag.MaintenanceModeEnabled.ToString().ToLowerInvariant()" />
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
+        <!-- System Identity Framework -->
+        <div class="lg:col-span-8 flex flex-col gap-10">
+            <section class="glass-panel p-10 rounded-[2.5rem] flex-1">
+                <div class="flex items-center gap-4 mb-10">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg shadow-slate-900/10">
+                        <span class="material-symbols-outlined">tune</span>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-slate-900 font-headline">General Settings.</h2>
+                        <p class="text-sm font-medium text-slate-500">Configure basic application details.</p>
+                    </div>
+                </div>
+
+                <div class="space-y-8">
+                    <div class="group">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Application Name</label>
+                        <input type="text" name="applicationName" value="@ViewBag.ApplicationName" 
+                               class="w-full bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/10 transition-all" />
+                    </div>
+
+                    <div class="group">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Administrator Email</label>
+                        <div class="relative">
+                            <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">mail</span>
+                            <input type="email" name="moduleLeaderContactEmail" value="@ViewBag.ModuleLeaderContactEmail" 
+                                   class="w-full bg-slate-50 border-none rounded-2xl py-4 pl-12 pr-6 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/10 transition-all" />
+                        </div>
+                    </div>
+
+                    <div class="group">
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2">Submission Word Limit</label>
+                        <div class="flex items-center gap-6">
+                            <input type="number" min="100" max="10000" name="maxSubmissionWords" value="@ViewBag.MaxSubmissionWords" 
+                                   class="w-32 bg-slate-50 border-none rounded-2xl py-4 px-6 text-sm font-black text-slate-900 focus:ring-2 focus:ring-emerald-500/10 transition-all text-center" />
+                            <p class="text-xs font-medium text-slate-400 italic">Maximum words allowed for project submissions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-12 flex items-center justify-between pt-8 border-t border-slate-50">
+                    <div class="flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">System Active</span>
+                    </div>
+                    <button type="submit" class="bg-slate-900 hover:bg-slate-800 text-white font-black text-xs uppercase tracking-widest py-4 px-10 rounded-2xl shadow-xl shadow-slate-900/10 transition-all flex items-center gap-3">
+                        <span class="material-symbols-outlined text-lg">save</span>
+                        Save Settings
+                    </button>
+                </div>
+            </section>
+
+            @if (User.IsInRole("Administrator"))
+            {
+                <!-- Recent Logs Registry -->
+                <section class="glass-panel p-10 rounded-[2.5rem]">
+                    <div class="flex items-center justify-between mb-8">
+                        <div>
+                            <h3 class="text-xl font-black text-slate-900 font-headline">Recent Changes.</h3>
+                            <p class="text-sm font-medium text-slate-500">Recent administrative modifications.</p>
+                        </div>
+                        <a href="@Url.Action("AuditLogs", "Admin")" class="text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors">See Archive</a>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between py-4 border-b border-slate-50">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-[10px] text-slate-400">@ViewBag.Change1Time</div>
+                                <div>
+                                    <p class="text-sm font-black text-slate-900">@ViewBag.Change1Title</p>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Actor: @ViewBag.Change1By</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between py-4">
+                            <div class="flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center font-black text-[10px] text-slate-400">@ViewBag.Change2Time</div>
+                                <div>
+                                    <p class="text-sm font-black text-slate-900">@ViewBag.Change2Title</p>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Actor: @ViewBag.Change2By</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            }
+        </div>
+
+        <!-- System Status Sidebars -->
+        <div class="lg:col-span-4 flex flex-col gap-10">
+            @if (User.IsInRole("Administrator"))
+            {
+                <section class="glass-panel p-10 rounded-[2.5rem] border-red-100 bg-red-50/10">
+                    <div class="flex items-start gap-4 mb-8">
+                        <div class="w-10 h-10 rounded-xl bg-red-600 text-white flex items-center justify-center shadow-lg shadow-red-900/20">
+                            <span class="material-symbols-outlined">lock</span>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-black text-slate-900 font-headline mb-1">Maintenance Mode.</h3>
+                            <p class="text-xs font-medium text-red-600">System Maintenance.</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between py-6 border-y border-red-100/50 mb-6">
+                        <span class="text-xs font-black text-slate-900 uppercase tracking-widest">Mode Status</span>
+                        <button type="button" id="toggle-maintenance" class="relative w-14 h-8 @(ViewBag.MaintenanceModeEnabled ? "bg-red-600" : "bg-slate-200") rounded-full transition-all duration-300">
+                            <span id="toggle-maintenance-knob" class="absolute top-1 @(ViewBag.MaintenanceModeEnabled ? "left-7 bg-white" : "left-1 bg-white") w-6 h-6 rounded-full shadow-md transition-all duration-300"></span>
+                        </button>
+                    </div>
+
+                    <div class="p-4 rounded-2xl bg-white border border-red-100 flex gap-3">
+                        <span class="material-symbols-outlined text-red-600 text-lg">warning</span>
+                        <p class="text-[9px] font-black text-red-600 uppercase tracking-[0.15em] leading-relaxed">
+                            Warning: Activating this will terminate all non-authorized student and faculty sessions immediately.
+                        </p>
+                    </div>
+                </section>
+            }
+
+            <section class="glass-panel p-10 rounded-[2.5rem] bg-emerald-50/10 border-emerald-100 flex-1">
+                <h3 class="text-lg font-black text-slate-900 font-headline mb-8">System Resource Monitor.</h3>
+                
+                <div class="space-y-6">
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Database Latency</span>
+                        <span class="text-xs font-black text-emerald-600 font-mono">@ViewBag.DatabaseLatency</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Compute Load</span>
+                        <span class="text-xs font-black text-emerald-600 font-mono">@ViewBag.MemoryUsage</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">System Uptime</span>
+                        <span class="text-xs font-black text-emerald-600 font-mono">@ViewBag.Uptime</span>
+                    </div>
+                </div>
+
+                <div class="mt-8 p-6 rounded-2xl bg-white border border-emerald-100">
+                    <p class="text-[10px] font-medium text-emerald-700 leading-relaxed italic">"@ViewBag.SystemSummary"</p>
+                </div>
+            </section>
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        (function () {
+            const maintenanceInput = document.getElementById('maintenanceModeEnabled');
+            const toggle = document.getElementById('toggle-maintenance');
+            const knob = document.getElementById('toggle-maintenance-knob');
+
+            if (!maintenanceInput || !toggle || !knob) {
+                return;
+            }
+
+            function setMaintenance(enabled) {
+                maintenanceInput.value = enabled ? 'true' : 'false';
+
+                toggle.classList.toggle('bg-[#2563EB]', enabled);
+                toggle.classList.toggle('border-blue-200', enabled);
+                toggle.classList.toggle('bg-white', !enabled);
+                toggle.classList.toggle('border-gray-200', !enabled);
+
+                knob.classList.toggle('left-[28px]', enabled);
+                knob.classList.toggle('left-1', !enabled);
+                knob.classList.toggle('bg-white', enabled);
+                knob.classList.toggle('bg-gray-200', !enabled);
+            }
+
+            toggle.addEventListener('click', function () {
+                setMaintenance(maintenanceInput.value !== 'true');
+            });
+        })();
+    </script>
+}

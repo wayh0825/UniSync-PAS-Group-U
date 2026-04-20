@@ -1,0 +1,595 @@
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using UniSync.Core.Data
+@using UniSync.Core.Entities
+@using UniSync.Core.Enums
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - UniSync</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            200: '#a7f3d0',
+                            300: '#6ee7b7',
+                            400: '#34d399',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        slate: {
+                            900: '#0f172a',
+                            800: '#1e293b',
+                            500: '#64748b',
+                        }
+                    },
+                    fontFamily: {
+                        headline: ["Outfit", "sans-serif"],
+                        body: ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    keyframes: {
+                        'fade-in-up': {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        },
+                        'slide-down-blur': {
+                            '0%': { opacity: '0', transform: 'translateY(-10px) scale(0.98)', filter: 'blur(10px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0) scale(1)', filter: 'blur(0)' },
+                        }
+                    },
+                    animation: {
+                        'fade-in-up': 'fade-in-up 0.6s ease-out forwards',
+                        'slide-down-blur': 'slide-down-blur 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* -----------------------
+           Global Dark Theme Framework
+           ----------------------- */
+        body {
+            background-color: #0b1120 !important;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(16, 185, 129, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(30, 41, 59, 0.5) 0px, transparent 50%) !important;
+            min-height: 100vh;
+            color: #f1f5f9;
+        }
+
+        h1, h2, h3, h4, h5, h6, 
+        .text-slate-900, .text-slate-800, .text-gray-900 {
+            color: #f8fafc !important;
+        }
+
+        p, span, .text-slate-700, .text-slate-600, .text-slate-500, .text-slate-400 {
+            color: #94a3b8 !important;
+        }
+
+        .text-emerald-600, .text-emerald-700 {
+            color: #34d399 !important;
+        }
+        .text-emerald-900 {
+            color: #a7f3d0 !important;
+        }
+        .text-white, .sidebar-active {
+            color: #ffffff !important;
+        }
+        .text-red-600, .text-danger { color: #f87171 !important; }
+
+        /* Badges & Alert Balancers */
+        .text-emerald-800 { color: #6ee7b7 !important; }
+        .text-blue-800 { color: #93c5fd !important; }
+        .text-blue-600 { color: #60a5fa !important; }
+        .bg-blue-50, .bg-blue-100 { background-color: rgba(59, 130, 246, 0.1) !important; border-color: rgba(59, 130, 246, 0.2) !important; }
+        .text-red-800 { color: #fca5a5 !important; }
+        .bg-red-50, .bg-red-100 { background-color: rgba(239, 68, 68, 0.1) !important; border-color: rgba(239, 68, 68, 0.2) !important; }
+        .text-amber-800, .text-yellow-800 { color: #fde047 !important; }
+        .text-amber-600, .text-yellow-600 { color: #fbbf24 !important; }
+        .bg-amber-50, .bg-yellow-50 { background-color: rgba(245, 158, 11, 0.1) !important; border-color: rgba(245, 158, 11, 0.2) !important; }
+
+        .bg-white, .bg-slate-50, .bg-slate-100, .bg-gray-50, .bg-slate-200 {
+            background-color: #1e293b !important;
+            border-color: #334155 !important;
+        }
+        
+        .border-slate-100, .border-slate-200, .border-b, .border-t {
+            border-color: rgba(255, 255, 255, 0.05) !important;
+        }
+
+        .bg-slate-900 {
+            background-color: #020617 !important;
+            border-color: #1e293b !important;
+        }
+        
+        div[class*="shadow-emerald"], div[class*="shadow-slate"] {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .bg-emerald-50, .bg-emerald-100 {
+            background-color: rgba(16, 185, 129, 0.1) !important;
+            border-color: rgba(16, 185, 129, 0.2) !important;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.6) !important;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4) !important;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.8) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.05) !important;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.2) !important;
+            border-color: rgba(16, 185, 129, 0.3) !important;
+        }
+
+        /* Hover Interceptors */
+        [class*="hover:bg-slate-50"]:hover, 
+        [class*="hover:bg-slate-100"]:hover, 
+        [class*="hover:bg-white"]:hover, 
+        [class*="hover:bg-slate-200"]:hover {
+            background-color: #334155 !important;
+        }
+
+        [class*="hover:bg-emerald-50"]:hover {
+            background-color: rgba(16, 185, 129, 0.15) !important;
+        }
+
+        [class*="hover:bg-slate-900"]:hover {
+            background-color: #020617 !important;
+        }
+
+        [class*="hover:text-slate-900"]:hover,
+        [class*="hover:text-slate-800"]:hover {
+            color: #ffffff !important;
+        }
+
+        .group:hover .group-hover\:text-white { color: #ffffff !important; }
+        .group:hover .group-hover\:bg-slate-900 { background-color: #020617 !important; }
+        .group:hover .group-hover\:text-emerald-600 { color: #34d399 !important; }
+
+        .nav-link-premium {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            color: #94a3b8 !important;
+        }
+
+        .nav-link-premium:hover:not(.sidebar-active) {
+            background: rgba(255, 255, 255, 0.05) !important;
+            transform: translateX(5px);
+            color: #f8fafc !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+        }
+
+        .nav-link-premium:hover .material-symbols-outlined {
+            color: #34d399 !important;
+        }
+
+        .sidebar-active {
+            background: #020617 !important;
+            color: #34d399 !important;
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.5) !important;
+            position: relative;
+        }
+
+        .sidebar-active .material-symbols-outlined {
+            color: #34d399 !important;
+        }
+
+        .sidebar-active::after {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 20px;
+            background: #34d399;
+            border-radius: 4px;
+            box-shadow: 0 0 10px #34d399;
+        }
+
+        @@keyframes sidebar-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.3); }
+            50% { transform: scale(1.02); box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.4); }
+        }
+
+        .sidebar-active.animate-pulse-limited {
+            animation: sidebar-pulse 2s ease-in-out infinite;
+        }
+
+        /* Inputs & Menus */
+        #notif-panel, #notif-panel .bg-white {
+            background: #1e293b !important;
+            border: 1px solid #334155 !important;
+        }
+        
+        input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+            background-color: #0f172a !important;
+            border: 1px solid #334155 !important;
+            color: #f8fafc !important;
+        }
+        input:not([type="checkbox"]):not([type="radio"]):focus, select:focus, textarea:focus {
+            border-color: #34d399 !important;
+            outline: none !important;
+            box-shadow: 0 0 0 1px #34d399 !important;
+        }
+        input::placeholder, textarea::placeholder {
+            color: #475569 !important;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="font-body text-slate-100 antialiased overflow-x-hidden">
+    @{
+        var currentAction = ViewContext.RouteData.Values["Action"]?.ToString() ?? "Index";
+        var currentController = ViewContext.RouteData.Values["Controller"]?.ToString() ?? "Home";
+        var layoutUser = await UserManager.GetUserAsync(User);
+        var currentUserDisplayName = string.IsNullOrWhiteSpace(layoutUser?.FullName) ? (User.Identity?.Name ?? "User") : layoutUser!.FullName;
+        var currentUserAvatar = currentUserDisplayName.Replace(" ", "+");
+        
+        var unreadCount = layoutUser is null ? 0 : await DbContext.AppNotifications.CountAsync(n => n.RecipientId == layoutUser.Id && !n.IsRead);
+    }
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar Architecture -->
+        <aside class="w-[280px] hidden lg:block flex-shrink-0 fixed h-full z-50 p-6">
+            <div class="glass-panel h-full rounded-[2.5rem] flex flex-col p-8 overflow-hidden">
+                <!-- Brand Protocol -->
+                <div class="flex items-center gap-3 mb-12">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-900/20">
+                        <span class="material-symbols-outlined text-xl">hub</span>
+                    </div>
+                    <div>
+                        <span class="text-xl font-black text-slate-900 font-headline tracking-tight">UniSync</span>
+                        <p class="text-[10px] font-bold text-slate-500 mt-1 pl-0.5 whitespace-nowrap">PAS By Group U</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Protocol -->
+                <nav class="flex-1 space-y-2 overflow-y-auto pr-2 custom-scrollbar">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6 px-1">Navigation</p>
+                    
+                    @if (User.IsInRole("Administrator"))
+                    {
+                        <a href="@Url.Action("Index", "Admin")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentController == "Admin" && currentAction == "Index" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">dashboard</span>
+                            Admin Dashboard
+                        </a>
+                        <a href="@Url.Action("ManageUsers", "Admin")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "ManageUsers" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">group</span>
+                            User Accounts
+                        </a>
+                        <a href="@Url.Action("Settings", "Admin")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "Settings" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">settings</span>
+                            System Settings
+                        </a>
+                        <a href="@Url.Action("AuditLogs", "Admin")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentController == "Admin" && currentAction == "AuditLogs" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">history_edu</span>
+                            Audit Logs
+                        </a>
+                        <a href="@Url.Action("Database", "Admin")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "Database" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">database</span>
+                            Infrascore
+                        </a>
+                        <a href="@Url.Action("Security", "Admin")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "Security" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">policy</span>
+                            Security Hub
+                        </a>
+                    }
+
+                    @if (User.IsInRole("ModuleLeader"))
+                    {
+                        <a href="@Url.Action("Dashboard", "ModuleLeader")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentController == "ModuleLeader" && currentAction == "Dashboard" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">grid_view</span>
+                            Academic Hub
+                        </a>
+                        <a href="@Url.Action("AllocationOversight", "ModuleLeader")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "AllocationOversight" || currentAction == "ManageSubmissionEntry" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">visibility</span>
+                            Allocations
+                        </a>
+                        <a href="@Url.Action("ExpertiseDomains", "ModuleLeader")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "ExpertiseDomains" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">menu_book</span>
+                            Research Areas
+                        </a>
+                        <a href="@Url.Action("Broadcast", "ModuleLeader")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "Broadcast" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">campaign</span>
+                            Broadcast Hub
+                        </a>
+                        <a href="@Url.Action("Reallocations", "ModuleLeader")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "Reallocations" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">sync_problem</span>
+                            Reallocations
+                        </a>
+                        <a href="@Url.Action("Settings", "ModuleLeader")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "Settings" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">settings</span>
+                            Academic Settings
+                        </a>
+                        <a href="@Url.Action("ViewAccounts", "ModuleLeader")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "ViewAccounts" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">group</span>
+                            View Accounts
+                        </a>
+                        <a href="@Url.Action("Profile", "ModuleLeader")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentController == "ModuleLeader" && currentAction == "Profile" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">account_circle</span>
+                            My Profile
+                        </a>
+                    }
+
+                    @if (User.IsInRole("Student"))
+                    {
+                        <a href="@Url.Action("Dashboard", "Student")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentController == "Student" && currentAction == "Dashboard" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">grid_view</span>
+                            My Dashboard
+                        </a>
+                        <a href="@Url.Action("MySubmissions", "Student")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "MySubmissions" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">description</span>
+                            Submissions
+                        </a>
+                    }
+
+                    @if (User.IsInRole("Supervisor"))
+                    {
+                        <a href="@Url.Action("Dashboard", "Supervisor")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentController == "Supervisor" && currentAction == "Dashboard" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">tune</span>
+                            Dashboard
+                        </a>
+                        <a href="@Url.Action("LinkedProjects", "Supervisor")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "LinkedProjects" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">group</span>
+                            Linked Projects
+                        </a>
+                    }
+
+                    @if (!User.IsInRole("Administrator") && !User.IsInRole("ModuleLeader"))
+                    {
+                        var profileController = User.IsInRole("Supervisor") ? "Supervisor" : "Account";
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-8 mb-6 px-1">Communication</p>
+                        <a href="@Url.Action("Messages", User.IsInRole("Supervisor") ? "Supervisor" : User.IsInRole("Student") ? "Student" : "Admin")" class="nav-link-premium flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentAction == "Messages" ? "sidebar-active animate-pulse-limited" : "text-slate-500 hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">chat_bubble</span>
+                            Messages
+                        </a>
+
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-8 mb-6 px-1">Account</p>
+                        <a href="@Url.Action("Profile", profileController)" class="flex items-center gap-3 px-5 py-3.5 rounded-2xl font-bold text-[14px] transition-all @(currentController == profileController && currentAction == "Profile" ? "sidebar-active" : "text-slate-500 hover:bg-white hover:text-slate-900")">
+                            <span class="material-symbols-outlined text-lg">person</span>
+                            My Profile
+                        </a>
+                    }
+                </nav>
+
+                <!-- User Interface -->
+                <div class="mt-auto pt-8 border-t border-slate-100 flex flex-col gap-4">
+                    <form asp-controller="Account" asp-action="Logout" asp-route-returnUrl="@Url.Action("Index", "Home")">
+                        <button type="submit" class="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-slate-900 text-white font-black text-[13px] hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10">
+                            <span class="material-symbols-outlined text-lg">logout</span>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Surface -->
+        <main class="flex-1 lg:ml-[280px] p-8 lg:p-12 relative animate-fade-in-up">
+            <!-- Global Top Bar -->
+            <header class="flex items-center justify-between mb-12 relative z-50">
+                <div>
+                   <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.25em]">Current Section</h2>
+                   <p class="text-[15px] font-bold text-slate-900">@(ViewData["Title"] ?? "Workspace")</p>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <div class="glass-panel flex items-center gap-4 px-4 py-2 rounded-2xl relative z-[100]">
+                        <button id="notif-toggle" class="w-10 h-10 rounded-xl hover:bg-slate-50 flex items-center justify-center text-slate-500 relative transition-all">
+                            <span class="material-symbols-outlined">notifications</span>
+                            @if(unreadCount > 0) {
+                                <span id="notif-badge-ping" class="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white animate-ping"></span>
+                                <span id="notif-badge" class="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white"></span>
+                            }
+                        </button>
+                        
+                        <!-- Notification Panel Dropdown -->
+                        <div id="notif-panel" class="hidden absolute top-full right-0 mt-4 w-96 bg-white rounded-[2rem] shadow-[0_30px_60px_rgba(0,0,0,0.2)] p-6 z-[999] border border-slate-100">
+                            <div class="flex items-center justify-between mb-6 px-1">
+                                <h3 class="text-sm font-black text-slate-900 uppercase tracking-widest">Direct Notifications</h3>
+                                <button id="mark-read-all" class="text-[10px] font-black text-emerald-600 uppercase hover:text-emerald-500 transition-colors">Mark all as read</button>
+                            </div>
+                            
+                            <div id="notif-list" class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                @{
+                                    var recentNotifications = layoutUser is null ? new List<AppNotification>() : await DbContext.AppNotifications
+                                        .Where(n => n.RecipientId == layoutUser.Id)
+                                        .OrderByDescending(n => n.CreatedAt)
+                                        .Take(5)
+                                        .ToListAsync();
+                                }
+
+                                @if (recentNotifications.Any())
+                                {
+                                    @foreach (var n in recentNotifications)
+                                    {
+                                        <div onclick="window.location.href='@Url.Action("OpenNotification", "Account", new { id = n.Id })'" class="p-4 rounded-2xl @(n.IsRead ? "bg-slate-50" : "bg-emerald-50 border border-emerald-100") transition-all hover:scale-[1.02] cursor-pointer mb-2">
+                                            <div class="flex justify-between items-start mb-1">
+                                                <span class="text-[11px] font-black @(n.IsRead ? "text-slate-500" : "text-emerald-700") uppercase">@n.Type.ToString()</span>
+                                                <span class="text-[10px] font-bold text-slate-400">@n.CreatedAt.ToString("HH:mm")</span>
+                                            </div>
+                                            <p class="text-[13px] font-semibold text-slate-800 leading-snug">@n.Message</p>
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <div class="py-16 text-center">
+                                        <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                            <span class="material-symbols-outlined text-3xl text-slate-300">notifications_off</span>
+                                        </div>
+                                        <p class="text-xs font-black text-slate-400 uppercase tracking-widest">No active alerts</p>
+                                        <p class="text-[10px] font-medium text-slate-300 mt-1 uppercase tracking-tighter">Everything is fully synched</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="hidden sm:block w-px h-6 bg-slate-100/10 mx-2 lg:mx-3 text-white/5"></div>
+                        <div class="hidden sm:flex flex-col items-end min-w-[90px]">
+                            <span class="text-[11px] font-black text-slate-300 uppercase tracking-widest" id="global-header-date">@DateTime.Now.ToString("dd MMM yyyy")</span>
+                            <span class="text-[9px] font-bold text-slate-500 tracking-wider" id="global-header-time">--:--:-- --</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            @RenderBody()
+        </main>
+    </div>
+    
+    <!-- Modals Portal -->
+    @await RenderSectionAsync("Modals", required: false)
+
+    @await RenderSectionAsync("Scripts", required: false)
+    
+    <!-- Unified Centralized Toasts -->
+    <partial name="_Toasts" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+    <script>
+        const signalConnection = new signalR.HubConnectionBuilder()
+            .withUrl("/hubs/signal")
+            .withAutomaticReconnect()
+            .build();
+
+        signalConnection.on("ReceiveSignal", (type, content) => {
+            const dot = document.querySelector('#notif-toggle .animate-ping');
+            const dot2 = document.querySelector('#notif-toggle .bg-emerald-500:not(.animate-ping)');
+            if (!dot) {
+               const toggle = document.getElementById('notif-toggle');
+               toggle.innerHTML += `
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white animate-ping"></span>
+                    <span class="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full border-2 border-white"></span>
+               `;
+            }
+        });
+
+        signalConnection.start()
+            .then(() => console.log("Admin Signal Protocol: Synchronized."))
+            .catch(err => console.error("Admin Signal Failure:", err));
+
+        // Dropdown Management
+        (() => {
+            const btn = document.getElementById('notif-toggle');
+            const panel = document.getElementById('notif-panel');
+            const list = document.getElementById('notif-list');
+            let isOpen = false;
+
+            const toggle = async (forceClose = false) => {
+                if (forceClose && !isOpen) return;
+                if (!isOpen && !forceClose) {
+                    panel.classList.remove('hidden');
+                    // Remove dots on open
+                    const dots = btn.querySelectorAll('.bg-emerald-500');
+                    dots.forEach(d => d.remove());
+                } else {
+                    panel.classList.add('hidden');
+                }
+                isOpen = !isOpen;
+            };
+
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggle();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (isOpen && !panel.contains(e.target)) toggle(true);
+            });
+
+            const markAllRead = document.getElementById('mark-read-all');
+            if (markAllRead) {
+                markAllRead.addEventListener('click', async () => {
+                    try {
+                       await fetch('@Url.Action("MarkAllAsRead", "Account")', { method: 'POST' });
+                       list.innerHTML = `
+                            <div class="py-12 text-center">
+                                <span class="material-symbols-outlined text-4xl text-slate-200 mb-3">notifications_off</span>
+                                <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">No active alerts</p>
+                            </div>
+                       `;
+                       var pinger = document.getElementById('notif-badge-ping');
+                       if (pinger) pinger.style.display = 'none';
+                       var badge = document.getElementById('notif-badge');
+                       if (badge) badge.style.display = 'none';
+                   } catch(e) {}
+                });
+            }
+        })();
+
+        // Navigation Progress
+        (function() {
+            const progress = document.getElementById('uplink-progress');
+            document.addEventListener('click', function(e) {
+                const link = e.target.closest('a');
+                if (!link || !link.href || link.target === '_blank' || link.href.includes('#')) return;
+                if (!link.href.startsWith(window.location.origin)) return;
+                
+                if (progress) {
+                    progress.style.display = 'block';
+                    setTimeout(() => progress.style.width = '70%', 10);
+                }
+            });
+
+            window.addEventListener('beforeunload', function() {
+                if (progress) progress.style.width = '100%';
+            });
+        })();
+
+        // Live Date & Time Tracker
+        (function() {
+            const timeEl = document.getElementById('global-header-time');
+            if(!timeEl) return;
+            
+            function updateTime() {
+                const now = new Date();
+                timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            }
+            updateTime();
+            setInterval(updateTime, 1000);
+        })();
+    </script>
+</body>
+</html>

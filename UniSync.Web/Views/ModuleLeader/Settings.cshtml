@@ -1,0 +1,98 @@
+@{
+    ViewData["Title"] = "Academic Settings";
+    Layout = "_AdminLayout";
+    var successMessage = TempData["SuccessMessage"] as string;
+}
+
+<div class="space-y-8 mt-6 pb-20 animate-fade-in-up">
+    <!-- Header Architecture -->
+    <header class="glass-panel p-10 lg:p-12 rounded-[3.5rem] relative overflow-hidden group mb-10">
+        <div class="absolute -right-20 -top-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-[120px] group-hover:bg-emerald-400/30 transition-all duration-700"></div>
+        <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-blue-400/10 rounded-full blur-[100px] group-hover:bg-blue-400/20 transition-all duration-700"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <p class="text-[11px] uppercase tracking-[0.2em] font-black text-emerald-600 mb-2">Governance Console</p>
+                <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight tracking-tight mb-2">Academic <span class="text-emerald-600">Settings</span></h1>
+                <p class="text-[14px] font-semibold text-slate-500 mt-4 max-w-xl">
+                    Configure institutional deadlines and session nomenclature for the active semester.
+                </p>
+            </div>
+            <div class="hidden md:flex gap-3">
+                <span class="px-4 py-2 rounded-2xl bg-slate-900 border border-slate-700/50 text-[10px] font-black uppercase tracking-widest text-slate-400 shadow-sm flex items-center gap-2">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></span> LIVE CONFIG
+                </span>
+            </div>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="p-6 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-bold text-sm animate-toast-slide flex items-center gap-4">
+            <span class="material-symbols-outlined">verified</span>
+            @successMessage
+        </div>
+    }
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Main Configuration Card -->
+        <div class="lg:col-span-8">
+            <div class="glass-panel p-10 lg:p-12 rounded-[3.5rem] bg-white shadow-2xl border border-slate-100">
+                <div class="flex items-center gap-4 mb-10">
+                    <div class="w-12 h-12 bg-slate-900 text-white rounded-2xl flex items-center justify-center">
+                        <span class="material-symbols-outlined">event_available</span>
+                    </div>
+                     <h3 class="text-xl font-black text-slate-900 font-headline">Session Parameters</h3>
+                </div>
+
+                <form asp-action="UpdateSettings" method="post" class="space-y-8">
+                    <div class="space-y-6">
+                        <div class="space-y-3">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Submission Deadline</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">calendar_month</span>
+                                <input type="date" name="deadline" value="@ViewBag.DeadlineValue" class="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[14px] font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all" />
+                            </div>
+                            <p class="text-[10px] text-slate-400 italic pl-1">This date will be displayed as the hard cutoff on Student dashboards.</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Academic Year / Semester Name</label>
+                            <div class="relative">
+                                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">school</span>
+                                <input type="text" name="yearName" value="@ViewBag.YearNameValue" placeholder="e.g. 2025/26 - Semester 2" class="w-full pl-12 pr-6 py-4 bg-slate-50 border border-slate-200 rounded-2xl text-[14px] font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/20 outline-none transition-all" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-10 border-t border-slate-100 flex justify-end">
+                        <button type="submit" class="px-10 py-4 bg-slate-900 text-white font-black uppercase tracking-widest text-[11px] rounded-2xl shadow-xl shadow-slate-900/20 hover:bg-slate-800 hover:-translate-y-1 transition-all">
+                            Commit Settings
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Info Column -->
+        <div class="lg:col-span-4 space-y-6">
+            <div class="glass-card p-8 rounded-[2.5rem] bg-slate-900 text-white border border-slate-700/50 shadow-2xl relative overflow-hidden group">
+                <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <h4 class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px]">info</span>
+                    Dynamic Updates
+                </h4>
+                <p class="text-[13px] font-medium text-slate-400 leading-relaxed mb-6">
+                    Changes to these settings take effect immediately across all nodes in the UniSync network.
+                </p>
+                <div class="p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <p class="text-[10px] font-bold text-slate-500 uppercase mb-1">Status</p>
+                    <p class="text-[12px] font-black text-emerald-400 flex items-center gap-2">
+                        <span class="flex h-2 w-2 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+                        Propagating Changes...
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

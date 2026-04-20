@@ -1,0 +1,41 @@
+## Build output
+bin/
+obj/
+
+## Visual Studio
+*.user
+*.suo
+.vs/
+*.rsuser
+
+## macOS
+.DS_Store
+
+## ASP.NET - Secrets & Dev Config
+appsettings.Development.json
+appsettings.Production.json
+
+## SQLite Databases
+*.db
+*.db-shm
+*.db-wal
+
+## Log files
+*.log
+web-server.log
+nohup.out
+
+## Node / NPM (used for Tailwind tooling)
+node_modules/
+package-lock.json
+package.json
+
+## Tailwind compiled output (generated file)
+wwwroot/css/tailwind.min.css
+wwwroot/css/app.css
+
+## Git history exports
+git_commit_history.txt
+
+## Reports (not part of codebase)
+Technical_Report.md
