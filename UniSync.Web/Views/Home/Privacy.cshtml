@@ -1,0 +1,38 @@
+@{
+    ViewData["Title"] = "Data Protocol";
+    Layout = "_Layout";
+}
+
+<div class="space-y-10 pb-20 animate-fade-in-up">
+    <header class="glass-panel p-10 md:p-14 rounded-[3rem] relative overflow-hidden">
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-emerald-100/30 rounded-full blur-[100px]"></div>
+        
+        <div class="relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100/50 border border-emerald-200 text-emerald-700 text-[10px] font-black uppercase tracking-widest mb-4">
+                Legal Framework
+            </div>
+            <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight">
+                Privacy <span class="text-emerald-600">Protocol.</span>
+            </h1>
+            <p class="text-lg font-medium text-slate-500 max-w-2xl mt-4">
+                UniSync is committed to maintaining the highest standards of data integrity and research confidentiality. This protocol outlines how your academic metadata is handled.
+            </p>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="glass-card p-8 rounded-[2.5rem] space-y-4">
+            <h3 class="text-xl font-black text-slate-900 font-headline">Research Privacy</h3>
+            <p class="text-sm font-medium text-slate-500 leading-relaxed">
+                All submission abstracts are processed through our blind-review engine to ensure neutrality. Personal identifiers are redacted before supervisor allocation.
+            </p>
+        </div>
+
+        <div class="glass-card p-8 rounded-[2.5rem] space-y-4">
+            <h3 class="text-xl font-black text-slate-900 font-headline">Telemetry Data</h3>
+            <p class="text-sm font-medium text-slate-500 leading-relaxed">
+                We collect minimal system telemetry to monitor platform health and optimize the matching algorithm for better research outcomes.
+            </p>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,251 @@
+@model IEnumerable<UniSync.Core.Entities.ExpertiseDomain>
+
+@{
+    ViewData["Title"] = "Research Areas";
+    Layout = "_AdminLayout";
+    var frequencies = ViewBag.Frequencies as Dictionary<int, int> ?? new Dictionary<int, int>();
+}
+
+<!-- Page Header Architecture -->
+<header class="glass-panel p-10 lg:p-12 rounded-[3.5rem] relative overflow-hidden group mb-10">
+    <div class="absolute -right-20 -top-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-[120px] group-hover:bg-emerald-400/30 transition-all duration-700"></div>
+    <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-blue-400/10 rounded-full blur-[100px] group-hover:bg-blue-400/20 transition-all duration-700"></div>
+    
+    <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-600 mb-2">System Taxonomy</p>
+            <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight tracking-tight">
+                Research <span class="text-emerald-600">Areas</span>
+            </h1>
+            <p class="text-lg font-medium text-slate-500 max-w-2xl mt-4">
+                Curate institutional academic domains to streamline student-supervisor mapping.
+            </p>
+        </div>
+        
+        <div class="hidden md:flex gap-3">
+            <span class="px-4 py-2 rounded-2xl bg-slate-900 border border-slate-700/50 text-[10px] font-black uppercase tracking-widest text-slate-400 shadow-sm flex items-center gap-2">
+                <div class="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(52,211,153,0.8)]"></div> SYSTEM LIVE
+            </span>
+        </div>
+    </div>
+</header>
+
+<!-- Main Split Container -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8 items-start">
+    
+    <!-- Left Column: Add New Area Form -->
+    <div class="lg:col-span-4 flex flex-col gap-6">
+        <div class="glass-panel rounded-[2.5rem] p-8 border border-slate-700/50 bg-slate-900/40 backdrop-blur-xl h-full shadow-md">
+            <div class="flex items-center gap-4 mb-8">
+                <div class="w-12 h-12 rounded-[1.2rem] bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                    <span class="material-symbols-outlined text-[20px]">add_circle</span>
+                </div>
+                <h2 class="text-[20px] font-headline font-black text-white">New Domain</h2>
+            </div>
+
+            <form asp-action="AddExpertiseDomain" method="post" class="space-y-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mb-2 ml-1">Research Title</label>
+                    <input type="text" name="AreaName" class="w-full bg-slate-950 border border-slate-700/50 py-3.5 px-4 rounded-xl text-[14px] text-white font-medium placeholder-slate-600 outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-inner" placeholder="e.g. Quantum Computing" required />
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mb-2 mt-6 ml-1">Category</label>
+                    <div class="relative">
+                        <select class="w-full bg-slate-950 border border-slate-700/50 py-3.5 px-4 rounded-xl text-[14px] text-white font-medium appearance-none outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-inner cursor-pointer">
+                            <option>Computer Science</option>
+                            <option>Engineering</option>
+                            <option>Business</option>
+                            <option>Humanities</option>
+                        </select>
+                        <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none text-[20px]">expand_more</span>
+                    </div>
+                </div>
+
+                <div class="pt-6">
+                    <button type="submit" class="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white font-black uppercase tracking-widest text-[12px] rounded-2xl shadow-lg shadow-emerald-600/20 transition-all transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <span class="material-symbols-outlined text-[18px]">sell</span> Register Tag
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div class="glass-card p-8 rounded-[2rem] border border-slate-700/50 bg-slate-900/60 shadow-md relative overflow-hidden group">
+            <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+            <div class="relative z-10">
+                <h4 class="text-[10px] font-black text-emerald-500 tracking-[0.2em] uppercase mb-3 flex items-center gap-2">
+                    <span class="material-symbols-outlined text-[16px]">lightbulb</span> Pro Tip
+                </h4>
+                <p class="text-[13px] text-slate-400 font-medium leading-relaxed">
+                    Use specific keywords instead of broad categories to drastically improve the heuristic accuracy of the Aura AI bulk-assign engine.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: List Table -->
+    <div class="lg:col-span-8 glass-panel rounded-[2.5rem] border border-slate-700/50 bg-slate-900/40 backdrop-blur-xl h-full flex flex-col shadow-md overflow-hidden">
+        <div class="p-8 flex justify-between items-center border-b border-slate-700/50 bg-slate-900/60 shrink-0">
+            <h2 class="text-xl font-headline font-black text-white">Active Taxonomies</h2>
+            <div class="bg-emerald-500/10 text-emerald-500 font-black tracking-widest text-[10px] px-4 py-2 rounded-xl border border-emerald-500/20 shadow-sm uppercase">
+                @Model.Count() Domains
+            </div>
+        </div>
+
+        <div class="flex-1 overflow-x-auto min-h-[350px]">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-950/40 border-b border-slate-700/50">
+                        <th class="py-5 pl-10 pr-4 font-black text-slate-500 uppercase text-[10px] tracking-widest w-1/3">Research Domain</th>
+                        <th class="py-5 px-4 font-black text-slate-500 uppercase text-[10px] tracking-widest w-1/2">Link Frequency</th>
+                        <th class="py-5 pr-10 pl-4 font-black text-slate-500 uppercase text-[10px] tracking-widest text-right w-1/6">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/30 overflow-y-auto">
+                    @{
+                        // Palette for pseudo status dots
+                        var palette = new[] { "border-emerald-400 bg-emerald-500", "border-blue-400 bg-blue-500", "border-purple-400 bg-purple-500" };
+                        int idx = 0;
+                    }
+                    @foreach (var area in Model)
+                    {
+                        var freq = frequencies.ContainsKey(area.Id) ? frequencies[area.Id] : 0;
+                        var areaCount = ViewBag.AreaCounts.ContainsKey(area.Id) ? ViewBag.AreaCounts[area.Id] : 0;
+                        var dotToken = palette[idx % palette.Length];
+                        var barColor = (idx % 2 == 0) ? "bg-emerald-500" : "bg-emerald-400";
+                        
+                        <tr class="hover:bg-slate-800/30 transition-colors group">
+                            <td class="py-6 pl-10 pr-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-3 h-3 rounded-full border-2 @dotToken shadow-[0_0_8px_rgba(255,255,255,0.2)]"></div>
+                                    <div>
+                                        <span class="font-black text-white text-[14px]">@area.Name</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-6 px-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden flex shadow-inner">
+                                        <div class="h-full @barColor rounded-full shadow-[0_0_10px_rgba(52,211,153,0.5)]" style="width: @(freq > 0 ? freq : 0)%"></div>
+                                    </div>
+                                    <div class="flex items-center gap-2 w-20">
+                                        <span class="text-[12px] font-black text-slate-300">@freq%</span>
+                                        <span class="text-[10px] text-slate-500 font-bold mb-0.5">(@areaCount)</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-6 pr-10 pl-4 flex justify-end">
+                                <button type="button" onclick="openDeleteModal(@area.Id, '@area.Name')" class="w-8 h-8 rounded-xl flex items-center justify-center text-slate-500 hover:text-white hover:bg-red-600 transition-colors opacity-0 group-hover:opacity-100 shadow-sm">
+                                    <span class="material-symbols-outlined text-[18px]">delete</span>
+                                </button>
+                            </td>
+                        </tr>
+                        idx++;
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="px-8 py-5 border-t border-slate-700/50 flex items-center justify-between shrink-0 bg-slate-900/40">
+            <button class="flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors">
+                <span class="material-symbols-outlined text-[16px]">chevron_left</span> Prev
+            </button>
+            <div class="flex items-center gap-2 font-black text-[12px]">
+                <button class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-500/20">1</button>
+                <button class="w-8 h-8 rounded-xl text-slate-400 hover:bg-slate-800 hover:text-white transition-colors flex items-center justify-center">2</button>
+            </div>
+            <button class="flex items-center gap-1 text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-colors">
+                Next <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Bottom Info Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 items-stretch pt-2">
+    <!-- Card 1 -->
+    <div class="glass-card p-8 rounded-[2rem] hover:-translate-y-2 transition-transform duration-300 shadow-md h-full flex flex-col justify-between group overflow-hidden relative border border-slate-700/50 bg-slate-900/40">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-emerald-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-2 mb-4 text-emerald-500">
+                <span class="material-symbols-outlined text-[20px]">trending_up</span>
+                <h4 class="text-[10px] font-black uppercase tracking-widest">Trending Field</h4>
+            </div>
+            <p class="text-3xl font-headline font-black text-white mb-3 leading-tight">@ViewBag.TrendingName</p>
+        </div>
+        <p class="text-[12px] text-slate-400 font-medium leading-relaxed relative z-10">
+            Leading with <span class="text-white font-bold">@ViewBag.TrendingCount</span> assignments verified in the database.
+        </p>
+    </div>
+
+    <!-- Card 2 -->
+    <div class="glass-card p-8 rounded-[2rem] hover:-translate-y-2 transition-transform duration-300 shadow-md h-full flex flex-col justify-between group overflow-hidden relative border border-slate-700/50 bg-slate-900/40">
+        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-blue-500/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-2 mb-4 text-blue-500">
+                <span class="material-symbols-outlined text-[20px]">warning</span>
+                <h4 class="text-[10px] font-black uppercase tracking-widest">Low Coverage</h4>
+            </div>
+            <p class="text-3xl font-headline font-black text-white mb-3 leading-tight">@ViewBag.LowCoverageName</p>
+        </div>
+        <p class="text-[12px] text-slate-400 font-medium leading-relaxed relative z-10">
+            Only <span class="text-white font-bold">@ViewBag.LowCoverageCount</span> active project(s). Supervisor recruitment advised.
+        </p>
+    </div>
+
+    <!-- Card 3 -->
+    <div class="glass-card p-8 rounded-[2rem] hover:-translate-y-2 transition-transform duration-300 shadow-md h-full flex flex-col justify-between group overflow-hidden relative bg-slate-900 border border-slate-700/50">
+        <div class="absolute inset-0 bg-[linear-gradient(to_right,#0f172a_1px,transparent_1px),linear-gradient(to_bottom,#0f172a_1px,transparent_1px)] bg-[size:14px_14px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-20 group-hover:opacity-30 transition-opacity"></div>
+        <div class="relative z-10">
+            <div class="flex items-center gap-2 mb-4 text-slate-400">
+                <span class="material-symbols-outlined text-[20px]">hub</span>
+                <h4 class="text-[10px] font-black uppercase tracking-widest">Runtime Sync</h4>
+            </div>
+            <p class="text-3xl font-headline font-black text-white mb-3 leading-tight flex items-center gap-3">
+                Online <span class="flex h-3 w-3 relative"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span></span>
+            </p>
+        </div>
+        <p class="text-[12px] text-slate-500 font-medium leading-relaxed relative z-10">
+            Taxonomy node connected to Core. Refreshed @DateTime.Now.ToString("HH:mm").
+        </p>
+    </div>
+</div>
+
+@section Modals {
+    <div id="deleteTaxonomyModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-md cursor-pointer" onclick="closeDeleteModal()"></div>
+        <div class="relative w-full max-w-sm glass-panel bg-slate-900/90 rounded-[2.5rem] p-10 border border-slate-700/50 shadow-2xl animate-toast-slide text-center z-10">
+            <div class="w-20 h-20 bg-red-500/10 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-red-500/20">
+                <span class="material-symbols-outlined text-[40px]">delete_forever</span>
+            </div>
+            <h3 class="text-2xl font-headline font-black text-white mb-2">Delete Taxonomy?</h3>
+            <p class="text-[13px] font-medium text-slate-400 mb-8 leading-relaxed">
+                <span id="deleteTaxonomyName" class="font-black text-white"></span> will be permanently removed. All linked metrics will be reset.
+            </p>
+            <form id="deleteTaxonomyForm" asp-action="DeleteExpertiseDomain" method="post" class="flex gap-4">
+                <input type="hidden" name="id" id="deleteTaxonomyId" value="" />
+                <button type="button" onclick="closeDeleteModal()" class="flex-1 px-4 py-3.5 bg-slate-800 text-white font-bold rounded-xl text-xs uppercase tracking-widest hover:bg-slate-700 transition-colors">
+                    Cancel
+                </button>
+                <button type="submit" class="flex-1 px-4 py-3.5 bg-red-600 text-white font-black rounded-xl text-xs uppercase tracking-widest shadow-lg shadow-red-600/20 hover:bg-red-500 transition-colors">
+                    Confirm
+                </button>
+            </form>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        function openDeleteModal(id, name) {
+            document.getElementById('deleteTaxonomyId').value = id;
+            document.getElementById('deleteTaxonomyName').textContent = name;
+            document.getElementById('deleteTaxonomyModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteTaxonomyModal').classList.add('hidden');
+            document.getElementById('deleteTaxonomyId').value = '';
+        }
+    </script>
+}

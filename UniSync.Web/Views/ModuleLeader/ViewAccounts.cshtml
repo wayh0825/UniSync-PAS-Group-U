@@ -1,0 +1,129 @@
+@model List<(UniSync.Core.Entities.ApplicationUser User, string Role)>
+@{
+    ViewData["Title"] = "User Registry";
+    Layout = "_AdminLayout";
+}
+
+<div class="space-y-8 mt-6 pb-20 animate-fade-in-up">
+    <!-- Header Architecture -->
+    <header class="glass-panel p-10 lg:p-12 rounded-[3.5rem] relative overflow-hidden group mb-10">
+        <div class="absolute -right-20 -top-20 w-96 h-96 bg-emerald-400/20 rounded-full blur-[120px] group-hover:bg-emerald-400/30 transition-all duration-700"></div>
+        <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-blue-400/10 rounded-full blur-[100px] group-hover:bg-blue-400/20 transition-all duration-700"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <p class="text-[11px] uppercase tracking-[0.2em] font-black text-emerald-600 mb-2">Network Directory</p>
+                <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight tracking-tight">User <span class="text-emerald-600">Registry</span></h1>
+                <p class="text-[14px] font-semibold text-slate-500 mt-4 max-w-xl">
+                    Browse and monitor the academic workforce and research candidates.
+                </p>
+            </div>
+            
+            <div class="flex gap-4">
+                <div class="glass-card px-6 py-3 rounded-2xl border border-slate-700/50 bg-slate-900 text-center">
+                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Students</p>
+                    <p class="text-xl font-black text-white">@ViewBag.ActiveStudents</p>
+                </div>
+                <div class="glass-card px-6 py-3 rounded-2xl border border-slate-700/50 bg-slate-900 text-center">
+                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Supervisors</p>
+                    <p class="text-xl font-black text-white">@ViewBag.Supervisors</p>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filter & Search Console -->
+    <div class="glass-panel p-8 rounded-[2.5rem] border border-slate-700/50 bg-slate-900/40 backdrop-blur-xl">
+        <form method="get" class="flex flex-col md:flex-row gap-6">
+            <div class="flex-1 relative">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-500">search</span>
+                <input type="text" name="search" value="@ViewBag.SearchTerm" placeholder="Search by name or email identifier..." class="w-full bg-slate-950 border border-slate-700/50 pl-12 pr-6 py-4 rounded-2xl text-[14px] text-white font-medium focus:ring-2 focus:ring-emerald-500/30 outline-none transition-all" />
+            </div>
+            
+            <div class="flex gap-4">
+                <select name="roleFilter" class="bg-slate-950 border border-slate-700/50 px-6 py-4 rounded-2xl text-[13px] font-bold text-white focus:ring-2 focus:ring-emerald-500/30 outline-none cursor-pointer">
+                    <option value="">All Roles</option>
+                    <option value="Student" selected="@(ViewBag.RoleFilter == "Student")">Students</option>
+                    <option value="Supervisor" selected="@(ViewBag.RoleFilter == "Supervisor")">Supervisors</option>
+                </select>
+
+                <select name="statusFilter" class="bg-slate-950 border border-slate-700/50 px-6 py-4 rounded-2xl text-[13px] font-bold text-white focus:ring-2 focus:ring-emerald-500/30 outline-none cursor-pointer">
+                    <option value="">Status</option>
+                    <option value="Active" selected="@(ViewBag.StatusFilter == "Active")">Verified</option>
+                    <option value="Inactive" selected="@(ViewBag.StatusFilter == "Inactive")">Unverified</option>
+                </select>
+
+                <button type="submit" class="bg-emerald-500 text-slate-950 px-8 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20">
+                    Apply Filter
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Registry Matrix -->
+    <div class="glass-panel rounded-[2.5rem] overflow-hidden border border-slate-700/50 bg-slate-900/40">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-slate-950/60 border-b border-slate-700/50">
+                        <th class="py-6 px-10 text-[10px] font-black text-slate-500 uppercase tracking-widest">Entity Signature</th>
+                        <th class="py-6 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Access Role</th>
+                        <th class="py-6 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Network Status</th>
+                        <th class="py-6 px-10 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Identifier</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/30">
+                    @foreach (var ur in Model)
+                    {
+                        <tr class="hover:bg-slate-800/30 transition-all">
+                            <td class="py-6 px-10">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-slate-950 border border-slate-700/50 flex items-center justify-center overflow-hidden">
+                                        <img src="https://ui-avatars.com/api/?name=@(ur.User.FullName)&background=random&color=fff" class="w-full h-full object-cover" />
+                                    </div>
+                                    <div>
+                                        <p class="text-sm font-black text-white">@ur.User.FullName</p>
+                                        <p class="text-[11px] font-bold text-slate-500 mt-1 uppercase tracking-tight">@ur.User.Email</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-6 px-8">
+                                <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border @(ur.Role == "Supervisor" ? "bg-blue-500/10 text-blue-400 border-blue-500/20" : "bg-purple-500/10 text-purple-400 border-purple-500/20")">
+                                    @ur.Role
+                                </span>
+                            </td>
+                            <td class="py-6 px-8">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full @(ur.User.EmailConfirmed ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-slate-600")"></div>
+                                    <span class="text-[11px] font-bold @(ur.User.EmailConfirmed ? "text-slate-300" : "text-slate-500") uppercase">
+                                        @(ur.User.EmailConfirmed ? "Verified Node" : "Awaiting Sync")
+                                    </span>
+                                </div>
+                            </td>
+                            <td class="py-6 px-10 text-right">
+                                <span class="text-[11px] font-mono text-slate-500">ID#@ur.User.Id.Substring(0, 8).ToUpper()</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination Protocol -->
+        <div class="p-8 border-t border-slate-700/50 flex items-center justify-between bg-slate-950/30">
+            <span class="text-[11px] font-black text-slate-500 uppercase tracking-widest">
+                Page @ViewBag.CurrentPage of @ViewBag.TotalPages
+            </span>
+            <div class="flex gap-2">
+                @if (ViewBag.CurrentPage > 1)
+                {
+                    <a href="@Url.Action("ViewAccounts", new { page = ViewBag.CurrentPage - 1, search = ViewBag.SearchTerm, roleFilter = ViewBag.RoleFilter, statusFilter = ViewBag.StatusFilter })" class="px-4 py-2 bg-slate-900 border border-slate-700/50 rounded-xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all">Previous</a>
+                }
+                @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                {
+                    <a href="@Url.Action("ViewAccounts", new { page = ViewBag.CurrentPage + 1, search = ViewBag.SearchTerm, roleFilter = ViewBag.RoleFilter, statusFilter = ViewBag.StatusFilter })" class="px-4 py-2 bg-slate-900 border border-slate-700/50 rounded-xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all">Next</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

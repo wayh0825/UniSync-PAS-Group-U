@@ -1,0 +1,126 @@
+@model IEnumerable<UniSync.Core.Entities.ReallocationRequest>
+@{
+    ViewData["Title"] = "Reallocations";
+    Layout = "_AdminLayout";
+    var successMessage = TempData["SuccessMessage"] as string;
+}
+
+<div class="space-y-8 mt-6 pb-20 animate-fade-in-up">
+    <!-- Header Architecture -->
+    <header class="glass-panel p-10 lg:p-12 rounded-[3.5rem] relative overflow-hidden group mb-10">
+        <div class="absolute -right-20 -top-20 w-96 h-96 bg-amber-400/20 rounded-full blur-[120px] group-hover:bg-amber-400/30 transition-all duration-700"></div>
+        <div class="absolute -left-20 -bottom-20 w-80 h-80 bg-slate-400/10 rounded-full blur-[100px] group-hover:bg-slate-400/20 transition-all duration-700"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <p class="text-[11px] uppercase tracking-[0.2em] font-black text-amber-600 mb-2">Dispute Resolution</p>
+                <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight tracking-tight mb-2">Reallocation <span class="text-amber-600">Requests</span></h1>
+                <p class="text-[14px] font-semibold text-slate-500 mt-4 max-w-xl">
+                    Address academic grievances and adjust supervisor pairings based on student requirements.
+                </p>
+            </div>
+        </div>
+    </header>
+
+    @if (!string.IsNullOrEmpty(successMessage))
+    {
+        <div class="p-6 rounded-[2rem] bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 font-bold text-sm animate-toast-slide flex items-center gap-4">
+            <span class="material-symbols-outlined">verified</span>
+            @successMessage
+        </div>
+    }
+
+    <!-- Table of Requests -->
+    <div class="glass-panel rounded-[2.5rem] overflow-hidden border border-slate-700/50 bg-slate-900/40 backdrop-blur-xl">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left">
+                <thead>
+                    <tr class="bg-slate-950/60 border-b border-slate-700/50">
+                        <th class="py-6 px-10 text-[10px] font-black text-slate-500 uppercase tracking-widest">Student / Project</th>
+                        <th class="py-6 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Grievance Reason</th>
+                        <th class="py-6 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Requested At</th>
+                        <th class="py-6 px-8 text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</th>
+                        <th class="py-6 px-10 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700/30">
+                    @foreach (var r in Model)
+                    {
+                        <tr class="hover:bg-slate-800/30 transition-all">
+                            <td class="py-8 px-10">
+                                <div class="flex items-center gap-4">
+                                    <img src="https://ui-avatars.com/api/?name=@(r.RequestedBy.FullName)&background=random&color=fff" class="w-10 h-10 rounded-xl" />
+                                    <div>
+                                        <p class="text-sm font-black text-white">@r.RequestedBy.FullName</p>
+                                        <p class="text-[10px] font-bold text-emerald-500 mt-1 uppercase tracking-tight">@r.Submission?.Title</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-8 px-8 max-w-xs">
+                                <p class="text-[12px] font-medium text-slate-400 leading-relaxed italic">"@r.Reason"</p>
+                            </td>
+                            <td class="py-8 px-8 text-[12px] font-bold text-slate-300">
+                                @r.RequestedAt.ToString("dd MMM, HH:mm")
+                            </td>
+                            <td class="py-8 px-8">
+                                <span class="px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest border @(r.Status == UniSync.Core.Entities.ReallocationStatus.Approved ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" : r.Status == UniSync.Core.Entities.ReallocationStatus.Rejected ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20")">
+                                    @r.Status
+                                </span>
+                            </td>
+                            <td class="py-8 px-10 text-right">
+                                @if (r.Status == UniSync.Core.Entities.ReallocationStatus.Pending)
+                                {
+                                    <div class="flex justify-end gap-2">
+                                        <button onclick="openProcessModal(@r.Id, true)" class="w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20">
+                                            <span class="material-symbols-outlined">check</span>
+                                        </button>
+                                        <button onclick="openProcessModal(@r.Id, false)" class="w-10 h-10 rounded-xl bg-slate-800 text-white flex items-center justify-center hover:bg-red-500 transition-all border border-slate-700">
+                                            <span class="material-symbols-outlined">close</span>
+                                        </button>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <span class="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Finalized</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div id="processModal" class="hidden fixed inset-0 z-[9999] flex items-center justify-center pointer-events-auto">
+    <div class="absolute inset-0 bg-slate-950/80 backdrop-blur-md" onclick="closeModal()"></div>
+    <div class="glass-panel w-full max-w-md p-10 rounded-[2.5rem] relative z-10 border border-slate-700/50 bg-slate-900 shadow-2xl scale-in">
+        <h3 id="modalTitle" class="text-2xl font-headline font-black text-white mb-2">Approve Request</h3>
+        <p class="text-[13px] font-medium text-slate-400 mb-8">Provide a justification for this decision.</p>
+        
+        <form asp-action="ProcessReallocation" method="post" class="space-y-6">
+            <input type="hidden" name="id" id="requestId" />
+            <input type="hidden" name="approve" id="approveFlag" />
+            
+            <textarea name="note" rows="4" class="w-full bg-slate-950 border border-slate-700/50 p-6 rounded-[1.5rem] text-sm text-white font-medium focus:ring-2 focus:ring-amber-500/30 outline-none" placeholder="Decision rationale..." required></textarea>
+            
+            <div class="flex gap-4">
+                <button type="button" onclick="closeModal()" class="flex-1 px-4 py-4 bg-slate-800 text-white font-bold rounded-2xl text-xs uppercase tracking-widest">Cancel</button>
+                <button type="submit" id="submitBtn" class="flex-1 px-4 py-4 bg-amber-500 text-slate-950 font-black rounded-2xl text-xs uppercase tracking-widest">Execute Decision</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openProcessModal(id, approve) {
+        document.getElementById('requestId').value = id;
+        document.getElementById('approveFlag').value = approve;
+        document.getElementById('modalTitle').innerText = approve ? "Approve Reallocation" : "Reject Reallocation";
+        document.getElementById('submitBtn').className = approve ? "flex-1 px-4 py-4 bg-emerald-500 text-slate-950 font-black rounded-2xl text-xs uppercase tracking-widest" : "flex-1 px-4 py-4 bg-red-500 text-white font-black rounded-2xl text-xs uppercase tracking-widest";
+        document.getElementById('processModal').classList.remove('hidden');
+    }
+    function closeModal() {
+        document.getElementById('processModal').classList.add('hidden');
+    }
+</script>
