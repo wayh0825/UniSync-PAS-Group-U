@@ -1,0 +1,152 @@
+@model UniSync.Web.ViewModels.ProfileViewModel
+@{
+    ViewData["Title"] = "Faculty Profile";
+    Layout = "_Layout";
+    var successMessage = TempData["SuccessMessage"]?.ToString();
+}
+
+<style>
+    .gradient-emerald {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+    }
+    .text-gradient-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .glass-input {
+        background: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(10px);
+    }
+    .glass-input:focus {
+        border-color: rgba(16, 185, 129, 0.5) !important;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.1) !important;
+    }
+</style>
+
+<div class="space-y-10 pb-20 animate-fade-in-up">
+    <!-- Feedback Alerts -->
+    @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="glass-panel px-8 py-5 rounded-[2rem] border border-emerald-500/20 bg-emerald-500/5 text-emerald-400 font-bold flex items-center gap-3 shadow-xl">
+            <span class="material-symbols-outlined">verified</span>
+            <span class="text-sm tracking-wide">@successMessage</span>
+        </div>
+    }
+
+    <!-- Profile Header Architecture -->
+    <header class="glass-panel p-10 md:p-14 rounded-[3.5rem] relative overflow-hidden border border-slate-800/50">
+        <div class="absolute -right-20 -top-20 w-[30rem] h-[30rem] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="absolute -left-20 -bottom-20 w-[20rem] h-[20rem] bg-blue-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center gap-12">
+            <div class="relative group">
+                <div class="absolute inset-0 bg-emerald-500 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                <div class="relative w-28 h-28 md:w-32 md:h-32 rounded-[2.5rem] gradient-emerald text-white flex items-center justify-center text-4xl md:text-5xl font-black font-headline shadow-2xl border-4 border-slate-900">
+                    @Model.Initials
+                </div>
+            </div>
+
+            <div class="flex-1">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-emerald-400 text-[10px] font-black uppercase tracking-widest mb-6">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    Faculty Node: @Model.RoleLabel
+                </div>
+                <h1 class="text-5xl md:text-6xl font-black text-slate-100 font-headline tracking-tight mb-4 leading-none">@Model.FullName</h1>
+                <p class="text-slate-400 font-bold text-lg">@Model.Email</p>
+            </div>
+            
+            <div class="bg-slate-900/60 backdrop-blur-xl rounded-[2.5rem] p-8 border border-slate-800/50 min-w-[240px]">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Capacity Load</p>
+                <div class="flex items-end gap-2">
+                    <span class="text-4xl font-black text-slate-100">@Model.MaxSupervisionCapacity</span>
+                    <span class="text-sm font-bold text-slate-500 mb-1.5">Nodes Max</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <form asp-action="Profile" method="post" class="grid grid-cols-1 lg:grid-cols-3 gap-10">
+        @Html.AntiForgeryToken()
+        
+        <!-- Left Column: Core Identity -->
+        <div class="lg:col-span-2 space-y-10">
+            <section class="glass-panel p-10 md:p-14 rounded-[3.5rem] space-y-10 border border-slate-800/50 bg-slate-900/10">
+                <div class="flex items-center gap-4 mb-2">
+                    <span class="material-symbols-outlined text-emerald-500">account_circle</span>
+                    <h2 class="text-2xl font-black text-slate-100 font-headline">Academic Identity</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="space-y-3">
+                        <label asp-for="FullName" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal Designation</label>
+                        <div class="relative group">
+                            <input asp-for="FullName" class="w-full glass-input rounded-2xl py-4.5 px-6 text-sm font-bold text-slate-200" placeholder="Full Name" />
+                            <span class="absolute right-6 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-700 group-focus-within:text-emerald-500">badge</span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <label asp-for="PhoneNumber" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Contact Protocol</label>
+                        <div class="relative group">
+                            <input asp-for="PhoneNumber" class="w-full glass-input rounded-2xl py-4.5 px-6 text-sm font-bold text-slate-200" placeholder="+94 7X XXX XXXX" />
+                            <span class="absolute right-6 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-700 group-focus-within:text-emerald-500">call</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-3">
+                    <label asp-for="Biography" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Professional Bio & Research Interests</label>
+                    <textarea asp-for="Biography" rows="6" 
+                              class="w-full glass-input rounded-3xl py-6 px-8 text-sm font-medium text-slate-300 leading-relaxed placeholder:text-slate-700" 
+                              placeholder="Briefly describe your academic background, core research interests, and preferred project methodologies..."></textarea>
+                </div>
+            </section>
+        </div>
+
+        <!-- Right Column: Settings & Actions -->
+        <div class="space-y-10">
+            <section class="glass-panel p-10 rounded-[3.5rem] space-y-8 border border-slate-800/50 bg-slate-900/10">
+                <div class="flex items-center gap-4 mb-2">
+                    <span class="material-symbols-outlined text-emerald-500">settings_input_composite</span>
+                    <h2 class="text-xl font-black text-slate-100 font-headline">Workload Logic</h2>
+                </div>
+
+                <div class="space-y-4">
+                    <label asp-for="MaxSupervisionCapacity" class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Maximum Student Capacity</label>
+                    <div class="relative group">
+                        <input asp-for="MaxSupervisionCapacity" type="number" min="1" max="100" 
+                               class="w-full glass-input rounded-2xl py-4.5 px-6 text-2xl font-black text-emerald-400" />
+                        <span class="absolute right-6 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-700">monitoring</span>
+                    </div>
+                    <p class="text-[9px] font-bold text-slate-500 leading-normal px-1">
+                        Determines the maximum number of concurrent research projects authorized for your supervision protocol.
+                    </p>
+                </div>
+
+                <div class="pt-6">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-black py-5 rounded-2xl shadow-2xl shadow-emerald-900/20 transition-all active:scale-[0.98] uppercase tracking-widest text-xs flex items-center justify-center gap-3">
+                        <span class="material-symbols-outlined text-[20px]">sync_alt</span>
+                        Update Faculty Node
+                    </button>
+                    
+                    <a asp-action="Dashboard" class="w-full mt-4 flex items-center justify-center py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-slate-300 transition-colors">
+                        Return to Dashboard
+                    </a>
+                </div>
+            </section>
+            
+            <!-- Information Card -->
+            <div class="p-8 rounded-[2.5rem] bg-indigo-500/5 border border-indigo-500/10">
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="material-symbols-outlined text-indigo-400 text-lg">info</span>
+                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Public Visibility</p>
+                </div>
+                <p class="text-xs font-medium text-slate-500 leading-relaxed">
+                    Your professional bio and expertise domains are visible to students looking for potential supervisors. Ensure your profile is articulate to attract high-quality research proposals.
+                </p>
+            </div>
+        </div>
+    </form>
+</div>

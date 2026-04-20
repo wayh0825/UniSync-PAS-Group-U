@@ -1,0 +1,198 @@
+@model UniSync.Web.ViewModels.SupervisorLinkedProjectsPageViewModel
+
+@{
+    ViewData["Title"] = "Linked Projects";
+    Layout = "_Layout";
+}
+
+<div class="space-y-10 pb-20 animate-fade-in-up">
+    <!-- Breadcrumb Protocol -->
+    <nav class="flex items-center gap-3 px-1 text-[10px] font-black uppercase tracking-widest text-slate-400">
+        <a asp-action="Dashboard" class="hover:text-emerald-600 transition-colors">Faculty Hub</a>
+        <span class="material-symbols-outlined text-[14px]">chevron_right</span>
+        <span class="text-slate-900">Active Supervision</span>
+    </nav>
+    <header class="glass-panel p-10 rounded-[3rem] relative overflow-hidden">
+        <div class="absolute -right-20 -top-20 w-80 h-80 bg-emerald-600/5 rounded-full blur-[100px]"></div>
+        <div class="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-2">Academic Portal</p>
+                <h1 class="text-4xl md:text-5xl font-black text-slate-900 font-headline leading-tight">
+                    Supervised <span class="text-emerald-600">Nodes.</span>
+                </h1>
+                <p class="text-lg font-medium text-slate-500 mt-4 max-w-xl">
+                    Tracking @Model.FilteredCount projects within your current supervision cluster. Student identities are authorized for active researchers.
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Project Telemetry -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="glass-panel p-8 rounded-[2rem] border-emerald-100 flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Active Execution</span>
+                <span class="material-symbols-outlined text-emerald-600">running_with_errors</span>
+            </div>
+            <p class="text-4xl font-black text-slate-900">@Model.ActiveCount</p>
+        </div>
+
+        <div class="glass-panel p-8 rounded-[2rem] border-amber-100 flex flex-col gap-4">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black text-amber-700 uppercase tracking-widest">Needs Audit</span>
+                <span class="material-symbols-outlined text-amber-600">priority_high</span>
+            </div>
+            <p class="text-4xl font-black text-slate-900">@Model.AttentionCount</p>
+        </div>
+
+        <div class="glass-panel p-8 rounded-[2rem] border-slate-100 flex flex-col gap-4 bg-slate-50/50">
+            <div class="flex items-center justify-between">
+                <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mission Complete</span>
+                <span class="material-symbols-outlined text-emerald-500">task_alt</span>
+            </div>
+            <p class="text-4xl font-black text-slate-900">@Model.CompletedCount</p>
+        </div>
+    </section>
+
+    <div class="glass-panel p-10 rounded-[3rem] space-y-8">
+        <!-- Search & Command Bar -->
+        <form method="get" asp-action="LinkedProjects" class="grid grid-cols-1 lg:grid-cols-[1fr_repeat(2,minmax(0,180px))_140px] gap-4">
+            <div class="relative group">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-xl group-focus-within:text-emerald-500 transition-colors">search</span>
+                <input name="search" value="@Model.Search" placeholder="Search by research area, title or student..." 
+                       class="w-full rounded-2xl border-none bg-slate-50 py-4 pl-12 pr-4 text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-emerald-500/10 transition-all" />
+            </div>
+
+            <select name="status" class="rounded-2xl border-none bg-slate-50 py-4 px-6 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/10 cursor-pointer appearance-none">
+                <option value="all" selected="@(Model.StatusFilter == "all")">All Status</option>
+                <option value="linked" selected="@(Model.StatusFilter == "linked")">Linked</option>
+                <option value="approved" selected="@(Model.StatusFilter == "approved")">Approved</option>
+                <option value="inprogress" selected="@(Model.StatusFilter == "inprogress")">In Progress</option>
+                <option value="completed" selected="@(Model.StatusFilter == "completed")">Completed</option>
+            </select>
+
+            <select name="sort" class="rounded-2xl border-none bg-slate-50 py-4 px-6 text-sm font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500/10 cursor-pointer appearance-none">
+                <option value="newest" selected="@(Model.SortBy == "newest")">Newest</option>
+                <option value="title" selected="@(Model.SortBy == "title")">Title A-Z</option>
+                <option value="status" selected="@(Model.SortBy == "status")">By Status</option>
+            </select>
+
+            <button type="submit" class="rounded-2xl bg-slate-900 text-white text-xs font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10">
+                Filter
+            </button>
+            <input type="hidden" name="page" value="1" />
+        </form>
+
+        @if (Model.HasActiveFilters)
+        {
+            <div class="mb-5 flex items-center justify-between gap-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3">
+                <p class="text-[12px] font-bold text-blue-700">Filters are active. Showing @Model.FilteredCount results.</p>
+                <a href="@Url.Action("LinkedProjects", "Supervisor")" class="text-[12px] font-black uppercase tracking-[0.12em] text-blue-700 hover:text-blue-800">Reset Filters</a>
+            </div>
+        }
+
+        @if (!Model.Projects.Any())
+        {
+            <div class="text-center py-16">
+                <span class="material-symbols-outlined text-6xl text-outline-variant opacity-40 flex justify-center mb-4">folder_open</span>
+                <h3 class="text-xl font-bold text-on-surface mb-2">No projects linked for this filter.</h3>
+                <p class="text-on-surface-variant mb-6">Try adjusting search or filters, or browse new submissions to start supervision.</p>
+                <a href="@Url.Action("AvailableProjects", "Supervisor")" class="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-headline font-black text-on-primary transition-all hover:translate-x-0.5">
+                    Browse Projects
+                    <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="grid grid-cols-1 gap-6">
+                @foreach (var project in Model.Projects)
+                {
+                    <article class="glass-card p-8 rounded-[2.5rem] flex flex-col xl:flex-row gap-8 group">
+                        <div class="flex-1 space-y-6">
+                            <div class="flex items-start gap-4">
+                                <div class="w-12 h-12 rounded-2xl bg-slate-900 text-white flex items-center justify-center shadow-lg shadow-slate-900/10">
+                                    <span class="material-symbols-outlined">assignment</span>
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="text-xl font-black text-slate-900 font-headline leading-tight group-hover:text-emerald-600 transition-colors">@project.Title</h3>
+                                    <div class="flex flex-wrap items-center gap-3 mt-2">
+                                        <span class="px-3 py-1 rounded-lg bg-emerald-900/5 text-emerald-600 text-[10px] font-black uppercase tracking-widest">@project.ExpertiseDomainName</span>
+                                        <div class="w-1 h-1 rounded-full bg-slate-200"></div>
+                                        <span class="text-[10px] font-black uppercase tracking-widest @project.StatusClass">@project.StatusLabel</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <p class="text-sm font-medium text-slate-500 leading-relaxed line-clamp-2">@project.ExecutiveSummary</p>
+
+                            <div class="space-y-3">
+                                <div class="flex justify-between items-end">
+                                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Progress Trace</span>
+                                    <span class="text-sm font-black text-slate-900">@project.ProgressPercent%</span>
+                                </div>
+                                <div class="h-1.5 w-full rounded-full bg-slate-100 overflow-hidden">
+                                    <div class="h-full bg-emerald-500 rounded-full transition-all duration-1000" style="width:@project.ProgressPercent%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="xl:w-[320px] flex flex-col gap-6 pt-6 xl:pt-0 xl:pl-8 xl:border-l border-slate-100">
+                            <!-- Student Profile Authorization -->
+                            <div class="p-5 rounded-[1.5rem] bg-slate-50 border border-slate-100 flex items-center gap-4">
+                                <div class="w-10 h-10 rounded-full bg-slate-900 text-white flex items-center justify-center font-black text-xs">
+                                    @project.StudentInitial
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-black text-slate-900 truncate">@project.StudentName</p>
+                                    <p class="text-[10px] font-bold text-emerald-600 truncate">@project.StudentEmail</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="p-3 rounded-xl border border-slate-100 text-center">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Assigned</p>
+                                    <p class="text-[11px] font-black text-slate-900">@project.LinkedDate.ToString("MMM dd")</p>
+                                </div>
+                                <div class="p-3 rounded-xl border border-slate-100 text-center">
+                                    <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Tech Cluster</p>
+                                    <p class="text-[11px] font-black text-slate-900 truncate">@(project.TechStack?.Split(',').FirstOrDefault() ?? "N/A")</p>
+                                </div>
+                            </div>
+
+                            <a href="@Url.Action("ReviewProject", "Supervisor", new { id = project.SubmissionId })" class="w-full py-3 rounded-xl bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest text-center hover:bg-slate-800 transition-all shadow-md shadow-slate-900/10">
+                                Enter Node Details
+                            </a>
+                        </div>
+                    </article>
+                }
+
+                @if (Model.TotalPages > 1)
+                {
+                    <nav class="mt-6 flex items-center justify-between rounded-xl border border-slate-100 bg-white/60 px-4 py-3">
+                        <p class="text-[12px] font-semibold text-slate-600">Page @Model.Page of @Model.TotalPages</p>
+                        <div class="flex items-center gap-2">
+                            @if (Model.Page > 1)
+                            {
+                                <a href="@Url.Action("LinkedProjects", "Supervisor", new { search = Model.Search, status = Model.StatusFilter, progress = Model.ProgressFilter, sort = Model.SortBy, pageSize = Model.PageSize, page = Model.Page - 1 })" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-bold text-slate-700 hover:bg-slate-50">Previous</a>
+                            }
+                            else
+                            {
+                                <span class="rounded-lg border border-slate-100 bg-slate-50 px-3 py-1.5 text-[12px] font-bold text-slate-400">Previous</span>
+                            }
+
+                            @if (Model.Page < Model.TotalPages)
+                            {
+                                <a href="@Url.Action("LinkedProjects", "Supervisor", new { search = Model.Search, status = Model.StatusFilter, progress = Model.ProgressFilter, sort = Model.SortBy, pageSize = Model.PageSize, page = Model.Page + 1 })" class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[12px] font-bold text-slate-700 hover:bg-slate-50">Next</a>
+                            }
+                            else
+                            {
+                                <span class="rounded-lg border border-slate-100 bg-slate-50 px-3 py-1.5 text-[12px] font-bold text-slate-400">Next</span>
+                            }
+                        </div>
+                    </nav>
+                }
+            </div>
+        }
+    </div>
+</div>
