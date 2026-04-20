@@ -1,0 +1,186 @@
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using UniSync.Core.Data
+@using UniSync.Core.Entities
+@using UniSync.Core.Enums
+@inject UserManager<ApplicationUser> UserManager
+@inject ApplicationDbContext DbContext
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Student Portal</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    
+    <!-- Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#2563eb",
+                        surface: "#F4F7FE",
+                        sidebar: "#ffffff",
+                        "slate-card": "#ffffff",
+                        "text-main": "#0F172A",
+                        "text-sub": "#64748B",
+                    },
+                    fontFamily: {
+                        headline: ["Plus Jakarta Sans", "sans-serif"],
+                        body: ["Inter", "sans-serif"]
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { 
+            background: linear-gradient(135deg, #f0f4ff 0%, #e6f9f0 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        .sidebar-active {
+            background: linear-gradient(90deg, #f0f4ff 0%, #ffffff 100%);
+            color: #2563eb;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.08);
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+</head>
+<body class="font-body text-text-main antialiased">
+    @{
+        var currentAction = ViewContext.RouteData.Values["Action"]?.ToString() ?? "Index";
+        var layoutUser = await UserManager.GetUserAsync(User);
+        var userDisplayName = layoutUser?.FullName;
+        if (string.IsNullOrWhiteSpace(userDisplayName))
+        {
+            userDisplayName = User.Identity?.Name ?? "Student";
+        }
+
+        var studentAvatar = userDisplayName.Replace(" ", "+");
+        var submissionCount = 0;
+        var linkedCount = 0;
+        if (layoutUser != null)
+        {
+            submissionCount = await DbContext.ResearchSubmissions.CountAsync(p => p.SubmitterId == layoutUser.Id);
+            linkedCount = await DbContext.ResearchSubmissions.CountAsync(p => p.SubmitterId == layoutUser.Id && p.Status == SubmissionStatus.Linked);
+        }
+
+        var progressPercent = submissionCount > 0
+            ? (int)System.Math.Round((double)linkedCount / submissionCount * 100)
+            : 0;
+    }
+
+    <div class="flex min-h-screen">
+        <!-- Sidebar -->
+        <aside class="w-[280px] bg-white/70 backdrop-blur-3xl flex-shrink-0 flex flex-col fixed h-full z-40 border-r border-white/40">
+            <div class="px-8 mt-12 mb-12">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-[#1155cc] text-white rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-blue-500/20">
+                        <span class="material-symbols-outlined text-[20px]">school</span>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-headline font-black tracking-tight text-[#0F172A] leading-tight">UniSync</h1>
+                        <p class="text-[10px] uppercase font-bold text-blue-500 tracking-[0.1em] mt-0.5">STUDENT PORTAL</p>
+                        <p class="text-[10px] font-bold text-gray-500 mt-0.5 whitespace-nowrap">PAS By Group U</p>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="flex flex-col gap-2 px-4 flex-1">
+                <a href="@Url.Action("Dashboard", "Student")" class="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-[15px] transition-all group @(currentAction == "Dashboard" ? "sidebar-active text-primary" : "text-text-sub hover:bg-white/50")">
+                    <span class="material-symbols-outlined text-[24px]">grid_view</span>
+                    Dashboard
+                </a>
+                
+                <a href="@Url.Action("MySubmissions", "Student")" class="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-[15px] transition-all group @(currentAction == "MySubmissions" ? "sidebar-active text-primary" : "text-text-sub hover:bg-white/50")">
+                    <span class="material-symbols-outlined text-[24px]">description</span>
+                    My Submissions
+                </a>
+
+                <a href="@Url.Action("Messages", "Student")" class="flex items-center gap-4 px-6 py-4 rounded-2xl font-bold text-[15px] transition-all group @(currentAction == "Messages" ? "sidebar-active text-primary" : "text-text-sub hover:bg-white/50")">
+                    <span class="material-symbols-outlined text-[24px]">chat_bubble</span>
+                    Messages
+                </a>
+            </nav>
+
+            <!-- Bottom Credits Section -->
+            <div class="p-6 mt-auto">
+                <div class="bg-blue-50/50 backdrop-blur-md rounded-2xl p-5 border border-white/50">
+                    <p class="text-[11px] font-extrabold text-[#64748B] tracking-wider uppercase mb-3">Submission Progress</p>
+                    <div class="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden mb-2.5">
+                        <div class="h-full bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.3)]" style="width:@progressPercent%"></div>
+                    </div>
+                    <p class="text-[12px] font-bold text-[#0F172A]">@linkedCount <span class="text-gray-400">/ @submissionCount Linked Submissions</span></p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Wrapper -->
+        <div class="ml-[280px] flex-1 flex flex-col w-full min-h-screen">
+            <!-- Header -->
+            <header class="h-[100px] flex items-center justify-between px-12 shrink-0">
+                <div class="flex-1 max-w-md">
+                    <div class="relative group">
+                        <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-primary transition-colors">search</span>
+                        <input type="text" placeholder="Search resources..." class="w-full bg-white/80 border border-white/60 rounded-2xl py-3.5 pl-14 pr-6 text-[14px] font-medium placeholder:text-gray-400 focus:outline-none focus:ring-4 focus:ring-blue-100/50 transition-all shadow-sm" />
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-6">
+                    <button class="w-11 h-11 flex items-center justify-center text-gray-500 hover:text-primary transition-colors relative bg-white/50 rounded-2xl border border-white/60">
+                        <span class="material-symbols-outlined text-[22px]">notifications</span>
+                        <span class="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                    </button>
+
+                    <div class="flex items-center gap-4 pl-4 border-l border-gray-200/50">
+                        <div class="text-right hidden sm:block">
+                            <p class="text-[14px] font-bold text-[#0F172A]">@userDisplayName</p>
+                            <p class="text-[11px] font-semibold text-gray-500 mt-0.5">3rd Year Student</p>
+                        </div>
+                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-400 p-[2px] shadow-lg shadow-blue-500/20">
+                            <img src="https://ui-avatars.com/api/?name=@studentAvatar&background=fff&color=2563eb" class="w-full h-full rounded-[14px] object-cover" alt="User" />
+                        </div>
+                    </div>
+                    
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                        <button type="submit" class="w-11 h-11 flex items-center justify-center text-red-500 hover:bg-red-50 transition-colors bg-white/50 rounded-2xl border border-white/60">
+                            <span class="material-symbols-outlined text-[20px]">logout</span>
+                        </button>
+                    </form>
+                </div>
+            </header>
+
+            <!-- Main Body Area -->
+            <main class="flex-1 px-12 pb-12">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

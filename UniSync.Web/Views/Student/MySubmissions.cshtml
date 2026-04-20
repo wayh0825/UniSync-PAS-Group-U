@@ -1,0 +1,204 @@
+@model UniSync.Web.ViewModels.StudentSubmissionsTrackerViewModel
+
+@{
+    ViewData["Title"] = "Submission Timeline";
+    Layout = "_Layout";
+    var totalCount = Model.Submissions.Count;
+}
+
+<style>
+    .gradient-text-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+
+<div class="space-y-8 animate-fade-in-up pb-20">
+    <!-- Header Protocol -->
+    <header class="glass-panel rounded-[3rem] p-10 md:p-14 relative overflow-hidden">
+        <div class="absolute -right-20 -top-20 w-[40rem] h-[40rem] bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none"></div>
+        
+        <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-12">
+            <div class="max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 shadow-sm mb-6">
+                    <span class="material-symbols-outlined text-[12px] text-emerald-400">history</span>
+                    <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">Project Record</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black text-slate-100 font-headline leading-none mb-6 tracking-tight">
+                    Research <span class="gradient-text-emerald">Projects.</span>
+                </h1>
+                <p class="text-slate-400 font-medium text-lg max-w-2xl leading-relaxed">
+                    Track the progress of your academic project approvals. Monitor real-time status updates and supervisor assignment status.
+                </p>
+            </div>
+
+            <a asp-action="Guidelines" class="bg-emerald-600 hover:bg-emerald-500 text-white font-black px-8 py-5 rounded-2xl shadow-[0_10px_20px_-5px_rgba(16,185,129,0.3)] transition-all active:scale-[0.98] flex items-center gap-3 text-[13px] uppercase tracking-wider">
+                <span class="material-symbols-outlined text-[20px]">add</span>
+                New Submission
+            </a>
+        </div>
+
+        <!-- Inline Stats Grid -->
+        <div class="relative z-10 grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 flex flex-col cursor-default hover:border-slate-500 transition-colors">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.15em] mb-4">Total Projects</p>
+                <p class="text-4xl font-black font-headline text-slate-100">@totalCount</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 flex flex-col cursor-default hover:border-amber-500/50 transition-colors">
+                <p class="text-[10px] font-black text-amber-600 uppercase tracking-[0.15em] mb-4">Pending Review</p>
+                <p class="text-4xl font-black font-headline text-amber-500">@Model.PendingCount</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 flex flex-col cursor-default hover:border-emerald-500/50 transition-colors">
+                <p class="text-[10px] font-black text-emerald-600 uppercase tracking-[0.15em] mb-4">Linked</p>
+                <p class="text-4xl font-black font-headline text-emerald-400">@Model.LinkedCount</p>
+            </div>
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 flex flex-col cursor-default hover:border-blue-500/50 transition-colors">
+                <p class="text-[10px] font-black text-blue-600 uppercase tracking-[0.15em] mb-4">Archived</p>
+                <p class="text-4xl font-black font-headline text-blue-400">@Model.CompletedCount</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Content Controller -->
+    <section class="space-y-6">
+        <div class="glass-card p-4 rounded-[2rem] flex flex-col md:flex-row md:items-center justify-between gap-4 sticky top-6 z-20">
+            <div class="relative flex-1">
+                <span class="absolute left-5 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500">search</span>
+                <input id="submissionSearch" type="text" placeholder="Filter by title or discipline..." 
+                       class="w-full bg-slate-900/50 border-none rounded-xl py-4 pl-14 pr-6 text-sm font-bold text-slate-200 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 transition-all font-headline" />
+            </div>
+
+            <div class="flex items-center gap-1 bg-slate-900/50 p-1.5 rounded-xl border border-slate-700" id="statusFilters">
+                <button type="button" data-filter="all" class="status-filter-btn px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest bg-emerald-600 shadow-md text-white transition-all">All</button>
+                <button type="button" data-filter="pending" class="status-filter-btn px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all">Pending</button>
+                <button type="button" data-filter="linked" class="status-filter-btn px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all">Linked</button>
+            </div>
+        </div>
+
+        <div id="submissionListContainer" class="space-y-4">
+            @if (Model.Submissions.Any())
+            {
+                foreach (var submission in Model.Submissions)
+                {
+                    var normalizedStatus = submission.Status.ToString().ToLowerInvariant();
+                    var statusColor = submission.Status switch {
+                        UniSync.Core.Enums.SubmissionStatus.Linked => "emerald",
+                        UniSync.Core.Enums.SubmissionStatus.UnderReview => "emerald",
+                        UniSync.Core.Enums.SubmissionStatus.Pending => "amber",
+                        _ => "blue"
+                    };
+
+                    <a asp-action="SubmissionDetails" asp-route-id="@submission.Id" 
+                       data-submission-item="true" data-status="@normalizedStatus" data-title="@submission.Title"
+                       class="block glass-card p-6 md:p-8 rounded-[2.5rem] hover:shadow-[0_20px_40px_-10px_rgba(16,185,129,0.15)] hover:border-emerald-500/30 hover:-translate-y-1 transition-all duration-300 group">
+                        
+                        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                            <div class="flex-1 min-w-0 pr-4">
+                                <div class="flex items-center gap-3 mb-4">
+                                    <span class="px-3 py-1 rounded-md bg-slate-900 border border-slate-700 text-slate-400 text-[9px] font-black uppercase tracking-widest">
+                                        @(submission.ExpertiseDomain?.Name ?? "General")
+                                    </span>
+                                    <span class="text-[10px] font-black text-slate-600 uppercase tracking-widest">ID: #0@submission.Id</span>
+                                </div>
+                                <h3 class="text-2xl font-bold font-headline text-slate-200 group-hover:text-emerald-400 transition-colors truncate">@submission.Title</h3>
+                                <div class="flex items-center gap-6 text-[11px] font-bold text-slate-500 mt-4">
+                                    <span class="flex items-center gap-2"><span class="material-symbols-outlined text-[16px] text-slate-600">calendar_today</span> @submission.SubmissionDate.ToString("dd MMM yyyy")</span>
+                                    @if(submission.LinkedSupervisor != null) {
+                                        <span class="flex items-center gap-2 text-emerald-500">
+                                            <span class="material-symbols-outlined text-[16px]">verified</span> 
+                                            Supervisor: @submission.LinkedSupervisor.FullName
+                                        </span>
+                                    } else {
+                                        <span class="flex items-center gap-2 text-slate-600">
+                                            <span class="material-symbols-outlined text-[16px]">person_off</span> 
+                                            Awaiting Assignment
+                                        </span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-6 border-t lg:border-t-0 lg:border-l border-slate-700/50 pt-6 lg:pt-0 lg:pl-8">
+                                <div class="text-right flex-1 lg:flex-none">
+                                    <p class="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1.5">Approval Status</p>
+                                    @if(statusColor == "emerald") {
+                                        <span class="inline-block px-3 py-1 rounded-md bg-emerald-900/20 border border-emerald-500/20 text-[10px] font-black text-emerald-400 uppercase tracking-[0.1em]">@submission.Status</span>
+                                    } else if(statusColor == "amber") {
+                                        <span class="inline-block px-3 py-1 rounded-md bg-amber-900/20 border border-amber-500/20 text-[10px] font-black text-amber-400 uppercase tracking-[0.1em]">@submission.Status</span>
+                                    } else {
+                                        <span class="inline-block px-3 py-1 rounded-md bg-blue-900/20 border border-blue-500/20 text-[10px] font-black text-blue-400 uppercase tracking-[0.1em]">@submission.Status</span>
+                                    }
+                                </div>
+                                <div class="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-700 text-slate-500 group-hover:bg-emerald-600 group-hover:border-emerald-500 group-hover:text-white flex items-center justify-center transition-all shadow-inner">
+                                    <span class="material-symbols-outlined text-[20px]">arrow_forward</span>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="glass-card p-24 rounded-[3rem] text-center flex flex-col items-center justify-center">
+                    <div class="w-20 h-20 bg-slate-900 border border-slate-700 text-slate-600 rounded-3xl flex items-center justify-center mb-8 shadow-inner">
+                        <span class="material-symbols-outlined text-4xl">inventory_2</span>
+                    </div>
+                    <h3 class="text-2xl font-black text-slate-200 font-headline mb-3 tracking-tight">No Projects Found</h3>
+                    <p class="text-slate-500 font-bold text-sm max-w-sm">No research projects have been submitted to the system during this cycle.</p>
+                </div>
+            }
+
+            <div id="noFilterResults" class="hidden glass-card p-20 rounded-[3rem] text-center flex flex-col items-center justify-center">
+                <span class="material-symbols-outlined text-slate-600 text-6xl mb-6">search_off</span>
+                <p class="text-slate-400 font-bold">No submissions match your active filter parameter.</p>
+            </div>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            const searchInput = document.getElementById('submissionSearch');
+            const cards = Array.from(document.querySelectorAll('[data-submission-item="true"]'));
+            const filterButtons = Array.from(document.querySelectorAll('.status-filter-btn'));
+            const noResults = document.getElementById('noFilterResults');
+
+            let activeFilter = 'all';
+
+            const update = () => {
+                const query = searchInput.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                cards.forEach((card) => {
+                    const status = card.dataset.status;
+                    const title = card.dataset.title.toLowerCase();
+
+                    const matchesFilter = activeFilter === 'all' || status === activeFilter;
+                    const matchesQuery = query.length === 0 || title.includes(query);
+                    const visible = matchesFilter && matchesQuery;
+
+                    card.style.display = visible ? 'block' : 'none';
+                    if (visible) visibleCount++;
+                });
+
+                noResults.style.display = visibleCount === 0 && cards.length > 0 ? 'block' : 'none';
+            };
+
+            filterButtons.forEach((btn) => {
+                btn.onclick = () => {
+                    activeFilter = btn.dataset.filter;
+                    filterButtons.forEach(b => {
+                        b.classList.remove('bg-emerald-600', 'text-white', 'shadow-md');
+                        b.classList.add('text-slate-400', 'hover:bg-slate-800', 'hover:text-slate-200');
+                    });
+                    btn.classList.add('bg-emerald-600', 'text-white', 'shadow-md');
+                    btn.classList.remove('text-slate-400', 'hover:bg-slate-800', 'hover:text-slate-200');
+                    update();
+                };
+            });
+
+            searchInput.oninput = update;
+        })();
+    </script>
+}

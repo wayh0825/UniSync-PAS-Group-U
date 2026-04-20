@@ -1,0 +1,319 @@
+@model IEnumerable<UniSync.Core.Entities.ResearchSubmission>
+
+@{
+    ViewData["Title"] = "Student Workspace";
+    Layout = "_Layout";
+
+    var displayName = ViewBag.DisplayName as string ?? "Student";
+    var progress = (int?)ViewBag.ProgressPercent ?? 0;
+    var currentThesis = ViewBag.CurrentThesis as string ?? "No submission active";
+    var hasSubmission = (bool?)ViewBag.HasSubmission ?? false;
+    var nextMilestone = ViewBag.NextMilestone as string ?? "INITIALIZE_PROPOSAL";
+    var advisorName = ViewBag.AdvisorName as string ?? "UNLINKED";
+    var advisorArea = ViewBag.AdvisorArea as string ?? "Awaiting Allocation";
+    var totalSubmissions = (int?)ViewBag.TotalSubmissions ?? 0;
+    var pendingCount = (int?)ViewBag.PendingCount ?? 0;
+    var linkedCount = (int?)ViewBag.LinkedCount ?? 0;
+    var lastSubmission = ViewBag.LastSubmission as string ?? "NULL";
+    var successMessage = TempData["SuccessMessage"] as string;
+}
+
+<style>
+    /* Custom Redesign Aesthetics */
+    .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .bento-item {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .bento-item:hover {
+        transform: translateY(-5px);
+    }
+    
+    .gradient-text-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+
+    <div id="dashboard-content" class="space-y-6 animate-fade-in-up transition-all duration-500">
+        @if (!string.IsNullOrWhiteSpace(successMessage))
+    {
+        <div class="glass-card px-6 py-4 border-emerald-500/30 flex items-center gap-3">
+            <span class="material-symbols-outlined text-emerald-400">task_alt</span>
+            <span class="text-emerald-400 font-bold text-sm">@successMessage</span>
+        </div>
+    }
+
+    <!-- Hero Section -->
+    <div class="glass-panel p-10 md:p-14 rounded-[3rem] relative">
+        <div class="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-l from-emerald-500/5 to-transparent pointer-events-none rounded-[3rem]"></div>
+        
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-700 shadow-sm mb-6">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse outline outline-1 outline-emerald-500/50 outline-offset-2"></span>
+            <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest ml-1">System Active</span>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-black font-headline mb-4 tracking-tight">
+            Welcome, <span class="gradient-text-emerald">@displayName.</span>
+        </h1>
+        <p class="text-slate-400 text-lg max-w-2xl font-medium leading-relaxed">
+            Your centralized research workspace. Monitor project status, manage submissions, and connect with your supervisor all in one fluid environment.
+        </p>
+    </div>
+
+    <!-- Bento Grid Setup -->
+    <div class="bento-grid">
+        <!-- Main Actions Card (Spans 8 cols) -->
+        <div class="bento-item col-span-12 lg:col-span-8 glass-panel rounded-[3rem] p-8 md:p-10 flex flex-col justify-between group">
+            <div>
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700 flex items-center justify-center text-slate-400 group-hover:text-emerald-400 transition-colors shadow-inner">
+                        <span class="material-symbols-outlined">description</span>
+                    </div>
+                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Current Research Project</span>
+                </div>
+                <h3 id="dash-thesis" class="text-3xl md:text-4xl font-bold font-headline text-slate-100 mb-3 truncate leading-snug">@currentThesis</h3>
+                <p id="dash-milestone" class="text-[11px] font-bold text-emerald-500 uppercase tracking-[0.15em] mb-12 bg-emerald-900/10 inline-block px-3 py-1 rounded-md border border-emerald-900/20">Status &mdash; @nextMilestone</p>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-4 mt-auto">
+                <a asp-action="CreateSubmission" asp-route-fromGuidelines="true" class="bg-emerald-600 hover:bg-emerald-500 text-white px-8 py-5 rounded-2xl font-black transition-all flex items-center gap-3 shadow-[0_10px_20px_-5px_rgba(16,185,129,0.3)] active:scale-[0.98] text-[13px] uppercase tracking-wider">
+                    <span class="material-symbols-outlined text-[20px]">add</span>
+                    Create Entry
+                </a>
+                <a asp-action="MySubmissions" class="bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white px-8 py-5 rounded-2xl font-black transition-all flex items-center gap-3 text-[13px] uppercase tracking-wider shadow-sm">
+                    <span class="material-symbols-outlined text-[20px]">history</span>
+                    History
+                </a>
+            </div>
+        </div>
+
+        <!-- Progress Card (Spans 4 cols) -->
+        <div class="bento-item col-span-12 lg:col-span-4 glass-card rounded-[3rem] p-8 flex flex-col items-center justify-center text-center">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Overall Progress</p>
+            
+            <div class="relative w-44 h-44 flex items-center justify-center mb-4">
+                <!-- Circular Progress SVG -->
+                <svg class="w-full h-full transform -rotate-90 drop-shadow-md" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="6" fill="transparent" class="text-slate-800" />
+                    <circle id="dash-progress-circle" cx="50" cy="50" r="40" stroke="currentColor" stroke-width="6" fill="transparent" stroke-dasharray="251.2" stroke-dashoffset="@(251.2 - (251.2 * progress / 100))" class="text-emerald-500 transition-all duration-1000 ease-out drop-shadow-[0_0_12px_rgba(16,185,129,0.4)] stroke-round" stroke-linecap="round" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span class="text-4xl font-black font-headline text-slate-100 drop-shadow-sm"><span id="dash-progress-text">@progress</span><span class="text-xl text-emerald-500">%</span></span>
+                </div>
+            </div>
+            <p class="text-xs font-bold text-slate-500">Milestone Progress</p>
+        </div>
+
+        <!-- Supervisor Node (Spans 4 cols) -->
+        <div class="bento-item col-span-12 md:col-span-6 lg:col-span-4 glass-card rounded-[3rem] p-8 lg:p-10 group overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between mb-8">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Project Supervisor</p>
+                @if (advisorName != "UNLINKED" && advisorName != "Not Assigned")
+                {
+                    <button onclick="openReallocationModal()" class="text-[9px] font-black text-slate-500 uppercase tracking-widest hover:text-red-400 transition-colors flex items-center gap-1 group/re">
+                        <span class="material-symbols-outlined text-[14px]">sync_problem</span>
+                        Request Change
+                    </button>
+                }
+                else
+                {
+                    <span class="material-symbols-outlined text-slate-500 group-hover:text-emerald-400 transition-colors">link</span>
+                }
+            </div>
+            
+            <div class="flex items-center gap-5 mb-auto pb-8">
+                <div id="dash-advisor-initial" class="w-16 h-16 rounded-3xl bg-slate-900 border-2 border-emerald-500/50 flex items-center justify-center text-emerald-400 font-bold text-2xl shadow-inner">
+                    @(advisorName == "UNLINKED" || advisorName == "Not Assigned" ? "?" : advisorName.Substring(0, 1))
+                </div>
+                <div>
+                    <h4 id="dash-advisor-name" class="text-lg font-bold text-slate-100 font-headline truncate max-w-[150px]">@advisorName</h4>
+                    <p id="dash-advisor-area" class="text-xs font-medium text-slate-500 truncate max-w-[150px] mt-0.5">@advisorArea</p>
+                </div>
+            </div>
+            
+            <div class="flex gap-2">
+                <a asp-action="Messages" class="flex-1 py-4 rounded-2xl bg-slate-900 border border-slate-700 text-slate-300 font-bold text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-800 hover:text-white hover:border-slate-500 transition-all shadow-sm">
+                    <span class="material-symbols-outlined text-[16px]">forum</span> Chat
+                </a>
+            </div>
+        </div>
+
+@section GlobalModals {
+    <!-- Reallocation Modal (Ported to Root Level) -->
+    <div id="reallocationModal" class="hidden fixed inset-0 z-[1000000] flex items-center justify-center p-4">
+        <div class="absolute inset-0 bg-slate-950/90 transition-all duration-500" onclick="closeReallocationModal()"></div>
+        
+        <div class="w-full max-w-lg p-10 md:p-12 rounded-[3.5rem] relative z-10 border border-slate-700 bg-slate-900 shadow-[0_0_150px_rgba(0,0,0,1)] scale-in transition-all duration-500">
+            <header class="mb-10 text-center">
+                <span class="px-4 py-1.5 rounded-full bg-red-600/10 text-red-500 text-[9px] font-black uppercase tracking-widest mb-4 inline-block border border-red-500/30">
+                    Grievance Protocol
+                </span>
+                <h3 class="text-3xl font-headline font-black text-white mb-2 leading-tight">Request <span class="text-red-500">Reallocation</span></h3>
+                <p class="text-[12px] font-medium text-slate-400 italic"> Formal submission for supervisor reassignment </p>
+            </header>
+            
+            <form asp-action="SubmitReallocationRequest" method="post" class="space-y-8">
+                @if (Model.Any(s => s.Status == UniSync.Core.Enums.SubmissionStatus.Linked))
+                {
+                    var activeSub = Model.First(s => s.Status == UniSync.Core.Enums.SubmissionStatus.Linked);
+                    <input type="hidden" name="submissionId" value="@activeSub.Id" />
+                }
+                
+                <div class="space-y-4">
+                    <label class="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Reason for Change</label>
+                    <textarea name="reason" rows="5" class="w-full bg-[#020617] border border-slate-800 p-8 rounded-[2rem] text-[14px] text-white font-medium focus:ring-4 focus:ring-red-500/20 focus:border-red-500/50 outline-none transition-all placeholder:text-slate-800 shadow-2xl" placeholder="Detailed explanation..." required></textarea>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-[10px] font-bold text-amber-500 leading-relaxed text-center">
+                    Audit will be performed by the Module Leader.
+                </div>
+                
+                <div class="flex gap-4">
+                    <button type="button" onclick="closeReallocationModal()" class="flex-1 px-8 py-5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl text-[11px] uppercase tracking-widest transition-all">Cancel</button>
+                    <button type="submit" class="flex-1 px-8 py-5 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl text-[11px] uppercase tracking-widest shadow-2xl transition-all active:scale-95">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+}
+
+<script>
+    function openReallocationModal() {
+        const modal = document.getElementById('reallocationModal');
+        const sidebar = document.getElementById('main-sidebar');
+        const content = document.getElementById('dashboard-content');
+        
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; 
+        
+        if(sidebar) sidebar.style.filter = 'blur(15px) grayscale(20%)';
+        if(content) content.style.filter = 'blur(15px)';
+    }
+    function closeReallocationModal() {
+        const modal = document.getElementById('reallocationModal');
+        const sidebar = document.getElementById('main-sidebar');
+        const content = document.getElementById('dashboard-content');
+        
+        modal.classList.add('hidden');
+        document.body.style.overflow = 'auto'; 
+        
+        if(sidebar) sidebar.style.filter = 'none';
+        if(content) content.style.filter = 'none';
+    }
+</script>
+
+        <!-- Metrics (Spans 4 cols) -->
+        <div class="bento-item col-span-12 md:col-span-6 lg:col-span-4 glass-card rounded-[3rem] p-8 lg:p-10 flex flex-col">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Project Statistics</p>
+            <div class="grid grid-cols-2 gap-4 flex-1">
+                <div class="bg-slate-900 border border-slate-700 rounded-3xl p-4 flex flex-col justify-center items-center text-center hover:border-slate-500 transition-colors cursor-default">
+                    <span id="dash-total-count" class="text-4xl font-black font-headline text-slate-100 mb-2">@totalSubmissions</span>
+                    <span class="text-[9px] font-black text-slate-500 uppercase tracking-[0.15em]">Total</span>
+                </div>
+                <div class="bg-emerald-900/10 border border-emerald-500/20 rounded-3xl p-4 flex flex-col justify-center items-center text-center hover:border-emerald-500/40 transition-colors shadow-inner cursor-default">
+                    <span id="dash-linked-count" class="text-4xl font-black font-headline text-emerald-400 mb-2">@linkedCount</span>
+                    <span class="text-[9px] font-black text-emerald-600 uppercase tracking-[0.15em]">Linked</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Activity Feed (Spans 4 cols) -->
+        <div class="bento-item col-span-12 lg:col-span-4 glass-card rounded-[3rem] p-8 lg:p-10 flex flex-col">
+            <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Activity Feed</p>
+            <div class="space-y-6 flex-1">
+                <div class="flex items-start gap-4">
+                    <div class="mt-1.5 w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981] outline outline-1 outline-emerald-500/30 outline-offset-2"></div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-200">Latest Submission</p>
+                        <p id="dash-last-date" class="text-xs font-medium text-slate-500 mt-1">@lastSubmission</p>
+                    </div>
+                </div>
+                <div class="w-px h-6 bg-slate-700/50 ml-1"></div>
+                <div class="flex items-start gap-4">
+                    <div class="mt-1.5 w-2 h-2 rounded-full bg-slate-600 outline outline-1 outline-slate-600/30 outline-offset-2"></div>
+                    <div>
+                        <p class="text-sm font-bold text-slate-200">System Status</p>
+                        <p class="text-xs font-medium text-slate-500 mt-1">Operational</p>
+                    </div>
+                </div>
+            </div>
+            <a asp-action="Guidelines" class="mt-6 flex items-center justify-between px-5 py-3 bg-slate-900 border border-slate-700 rounded-2xl text-[11px] font-bold text-slate-400 uppercase tracking-wider hover:text-white hover:border-slate-600 transition-colors">
+                Read Guidelines <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (() => {
+            if (!window.signalConnection) return;
+
+            signalConnection.on("ReceiveSignal", async (type, title) => {
+                // If the signal is related to project status (Submission or Link)
+                if (type === "Submission" || type === "Link" || type === "Broadcast" || type === "Message") {
+                    console.log("Status update received. Syncing dashboard...");
+                    await refreshDashboard();
+                }
+            });
+
+            signalConnection.on("IdentityChanged", async (userId, newName) => {
+                console.log("Identity update detected. Syncing dashboard...");
+                await refreshDashboard();
+            });
+
+            async function refreshDashboard() {
+                try {
+                    const response = await fetch('@Url.Action("GetDashboardMetrics", "Student")');
+                    const data = await response.json();
+
+                    // Update UI elements with smooth transitions
+                    const thesis = document.getElementById('dash-thesis');
+                    const milestone = document.getElementById('dash-milestone');
+                    const progText = document.getElementById('dash-progress-text');
+                    const progCircle = document.getElementById('dash-progress-circle');
+                    const advName = document.getElementById('dash-advisor-name');
+                    const advArea = document.getElementById('dash-advisor-area');
+                    const advInit = document.getElementById('dash-advisor-initial');
+                    const totalCount = document.getElementById('dash-total-count');
+                    const linkedCount = document.getElementById('dash-linked-count');
+                    const lastDate = document.getElementById('dash-last-date');
+
+                    if (thesis) thesis.innerText = data.currentThesis;
+                    if (milestone) milestone.innerHTML = `Status &mdash; ${data.nextMilestone}`;
+                    
+                    if (progText) progText.innerText = data.progress;
+                    if (progCircle) {
+                        const offset = 251.2 - (251.2 * data.progress / 100);
+                        progCircle.setAttribute('stroke-dashoffset', offset);
+                    }
+
+                    if (advName) advName.innerText = data.advisorName;
+                    if (advArea) advArea.innerText = data.advisorArea;
+                    if (advInit) {
+                        advInit.innerText = (data.advisorName === "UNLINKED" || data.advisorName === "Not Assigned") ? "?" : data.advisorName.substring(0, 1);
+                    }
+
+                    if (totalCount) totalCount.innerText = data.totalSubmissions;
+                    if (linkedCount) linkedCount.innerText = data.linkedCount;
+                    if (lastDate) lastDate.innerText = data.lastSubmission;
+
+                } catch (err) {
+                    console.error("Dashboard sync failure:", err);
+                }
+            }
+
+            // Periodic Health Sync: Refresh every 5 minutes as a fallback for SignalR
+            setInterval(refreshDashboard, 5 * 60 * 1000);
+        })();
+    </script>
+}

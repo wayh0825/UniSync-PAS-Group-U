@@ -1,0 +1,312 @@
+@model UniSync.Web.ViewModels.SupervisorDashboardViewModel
+
+@{
+    ViewData["Title"] = "Expertise Hub";
+    Layout = "_Layout";
+    var selectedCount = Model.SelectedAreaIds.Count;
+    var supervisorInitial = string.IsNullOrWhiteSpace(Model.SupervisorName) ? "S" : Model.SupervisorName.Trim().Substring(0, 1).ToUpperInvariant();
+}
+
+<style>
+    /* Premium Design System Expansion */
+    .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 1.5rem;
+    }
+    
+    .bento-item {
+        transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+    }
+    
+    .glass-card-premium {
+        background: rgba(30, 41, 59, 0.4);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 3rem;
+        transition: all 0.4s ease;
+    }
+
+    .glass-card-premium:hover {
+        border-color: rgba(16, 185, 129, 0.3);
+        background: rgba(30, 41, 59, 0.6);
+        transform: translateY(-5px);
+    }
+
+    .gradient-text-emerald {
+        background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .stat-pill {
+        background: rgba(15, 23, 42, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 1.5rem;
+        padding: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .stat-pill:hover {
+        background: rgba(16, 185, 129, 0.05);
+        border-color: rgba(16, 185, 129, 0.2);
+    }
+
+    /* Custom Scrollbar for Chips */
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    /* Ensure selected text is pure white and overrides global layout styles */
+    .expertise-chip input:checked + div span {
+        color: #ffffff !important;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+</style>
+
+<div class="space-y-8 animate-fade-in-up pb-12">
+    <!-- Hero Context Component - Seamlessly follows the Layout Header -->
+    <div class="glass-card-premium p-10 md:p-12 relative overflow-hidden group">
+        <div class="absolute right-0 top-0 w-1/3 h-full bg-gradient-to-l from-emerald-500/10 to-transparent pointer-events-none"></div>
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-8">
+            <div class="space-y-4">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/80 border border-slate-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span class="text-[9px] font-black text-slate-300 uppercase tracking-widest">Supervisor Identity Synchronized</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-black font-headline tracking-tight">
+                    Welcome, <span class="gradient-text-emerald">@Model.SupervisorName.</span>
+                </h1>
+                <p class="text-slate-400 text-base md:text-lg max-w-2xl font-medium leading-relaxed">
+                    Optimize your research supervision radius and monitor alignment protocols across the unified academic network.
+                </p>
+            </div>
+            
+            <div class="flex items-center gap-5 p-6 rounded-[2rem] bg-slate-900/40 border border-white/5 backdrop-blur-md">
+                <div class="w-16 h-16 rounded-2xl bg-slate-800 border border-emerald-500/30 flex items-center justify-center text-emerald-400 font-bold text-2xl shadow-inner">
+                    @supervisorInitial
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Status Level</p>
+                    <p class="text-xl font-black text-white">Senior Supervisor</p>
+                    <p class="text-[10px] text-slate-500 mt-1 uppercase font-bold tracking-tighter">Unified Access Protocol</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bento-grid">
+        <!-- Expertise Calibration Module (Spans 8 cols) -->
+        <div class="col-span-12 lg:col-span-8 glass-card-premium p-8 md:p-10 flex flex-col">
+            <div class="flex items-center justify-between mb-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-emerald-400 transition-colors">
+                        <span class="material-symbols-outlined text-2xl">tune</span>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-bold font-headline text-white">Expertise Calibration</h3>
+                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mt-1">Define your research supervision radius</p>
+                    </div>
+                </div>
+                <div class="bg-emerald-500/10 px-5 py-2 rounded-xl border border-emerald-500/20 flex items-center gap-3">
+                    <span class="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Active Domains:</span>
+                    <span id="selected-count" class="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-black shadow-lg shadow-emerald-500/30">@selectedCount</span>
+                </div>
+            </div>
+
+            <form asp-action="SaveExpertise" method="post" class="space-y-8 flex-1 flex flex-col">
+                @Html.AntiForgeryToken()
+                
+                <div class="relative group/search">
+                    <div class="absolute inset-y-0 left-6 flex items-center pointer-events-none text-slate-600 group-focus-within/search:text-emerald-400 transition-colors">
+                        <span class="material-symbols-outlined text-xl">search</span>
+                    </div>
+                    <input id="expertise-search" type="text" placeholder="Search specialized domains..." 
+                           class="w-full bg-slate-900/60 border border-slate-700/50 rounded-2xl py-5 pl-16 pr-8 text-sm font-semibold text-white placeholder:text-slate-700 focus:border-emerald-500/30 outline-none transition-all" />
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[360px] overflow-y-auto pr-3 custom-scrollbar" id="expertise-chip-list">
+                    @foreach (var area in Model.ExpertiseDomains)
+                    {
+                        var isChecked = Model.SelectedAreaIds.Contains(area.Id);
+                        <label class="expertise-chip block cursor-pointer group/chip" data-label="@area.Name.ToLowerInvariant()">
+                            <input class="peer sr-only" type="checkbox" name="selectedAreaIds" value="@area.Id" checked="@isChecked" />
+                            <div class="flex items-center justify-between p-5 rounded-2xl border border-slate-700/40 bg-slate-900/40 transition-all peer-checked:bg-emerald-600 peer-checked:border-emerald-500 peer-checked:shadow-[0_0_20px_rgba(16,185,129,0.1)] hover:border-slate-500">
+                                <span class="text-sm font-bold text-slate-300 peer-checked:text-white">@area.Name</span>
+                                <div class="w-5 h-5 rounded-lg border border-slate-600 flex items-center justify-center transition-all peer-checked:bg-white peer-checked:border-white">
+                                    <span class="material-symbols-outlined text-[12px] text-transparent peer-checked:text-emerald-600 font-black">check</span>
+                                </div>
+                            </div>
+                        </label>
+                    }
+                </div>
+
+                <div class="pt-10 mt-auto border-t border-white/5">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-5 rounded-2xl font-black transition-all flex items-center justify-center gap-4 shadow-xl shadow-emerald-500/10 active:scale-[0.99] text-[13px] uppercase tracking-widest">
+                        Synchronize Expertise Matrix
+                        <span class="material-symbols-outlined text-[20px]">sync</span>
+                    </button>
+                    <p class="text-[9px] text-center text-slate-600 mt-4 uppercase tracking-[0.2em]">Updates will propagate across relevant research pipelines</p>
+                </div>
+            </form>
+        </div>
+
+        <!-- Performance & Pipeline Stats (Spans 4 cols) -->
+        <div class="col-span-12 lg:col-span-4 space-y-6">
+            <div class="glass-card-premium p-8 lg:p-10">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-10">Portfolio Overview</p>
+                
+                <div class="space-y-5">
+                    <div class="stat-pill group">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-emerald-400 transition-colors">
+                            <span class="material-symbols-outlined">hub</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Available</p>
+                            <p class="text-2xl font-black text-white font-headline">@Model.AvailableProjectsCount</p>
+                        </div>
+                        <div class="w-1 h-8 rounded-full bg-emerald-500/20 group-hover:bg-emerald-500 transition-all"></div>
+                    </div>
+
+                    <div class="stat-pill group">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-emerald-400 transition-colors">
+                            <span class="material-symbols-outlined">verified</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Approved</p>
+                            <p class="text-2xl font-black text-emerald-400 font-headline">@Model.ApprovedCount</p>
+                        </div>
+                    </div>
+
+                    <div class="stat-pill group">
+                        <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-slate-400 group-hover:text-emerald-400 transition-colors">
+                            <span class="material-symbols-outlined">pending</span>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-[9px] font-black text-slate-500 uppercase tracking-widest">In Progress</p>
+                            <p class="text-2xl font-black text-amber-400 font-headline">@Model.InProgressCount</p>
+                        </div>
+                    </div>
+                </div>
+
+                <a asp-action="LinkedProjects" class="mt-10 w-full py-4 rounded-2xl bg-slate-900 border border-slate-700 text-slate-400 font-bold text-[11px] uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-slate-800 hover:text-white transition-all">
+                    Full Supervision History <span class="material-symbols-outlined text-[16px]">history</span>
+                </a>
+            </div>
+
+            <!-- Quick Access / Support Node -->
+            <div class="glass-card-premium p-8 bg-emerald-600/5 border-emerald-500/10">
+                <div class="flex items-start gap-4 mb-6">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                        <span class="material-symbols-outlined">help_center</span>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Academic Support</h4>
+                        <p class="text-[10px] text-slate-500 mt-1 leading-relaxed">Need assistance with supervision protocols?</p>
+                    </div>
+                </div>
+                <button class="w-full py-3 rounded-xl bg-slate-900/80 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-emerald-400 border border-slate-800 transition-all">Contact Admin Node</button>
+            </div>
+        </div>
+
+        <!-- Alignment Recommendations (Spans 12 cols) -->
+        <div class="col-span-12 glass-card-premium p-8 md:p-12 overflow-hidden">
+            <div class="flex items-center justify-between mb-10">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-slate-900 flex items-center justify-center text-emerald-400">
+                        <span class="material-symbols-outlined text-2xl">rocket_launch</span>
+                    </div>
+                    <div>
+                        <h3 class="text-2xl font-bold font-headline text-white">Strategic Alignments</h3>
+                        <p class="text-[11px] font-medium text-slate-500 mt-1">Research candidates matching your specialized matrix</p>
+                    </div>
+                </div>
+                <a asp-action="AvailableProjects" class="text-[11px] font-black text-emerald-500 uppercase tracking-widest hover:text-white transition-colors flex items-center gap-2">
+                    Global Pipeline <span class="material-symbols-outlined text-sm">open_in_new</span>
+                </a>
+            </div>
+
+            @if (!Model.RecommendedProjects.Any())
+            {
+                <div class="py-24 text-center">
+                    <div class="w-20 h-20 bg-slate-900/50 rounded-full flex items-center justify-center text-slate-600 mx-auto mb-6 border border-white/5 shadow-inner">
+                        <span class="material-symbols-outlined text-4xl">sensors_off</span>
+                    </div>
+                    <h4 class="text-lg font-bold text-slate-300">No Active Alignments</h4>
+                    <p class="text-sm text-slate-500 mt-2 max-w-sm mx-auto leading-relaxed">Expand your expertise calibration matrix to receive real-time research opportunities.</p>
+                </div>
+            }
+            else
+            {
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    @foreach (var project in Model.RecommendedProjects.Take(3))
+                    {
+                        <div class="bg-slate-900/40 border border-slate-700/50 rounded-[2.5rem] p-8 group/card hover:border-emerald-500/30 transition-all flex flex-col justify-between relative overflow-hidden">
+                            <div class="absolute inset-0 bg-emerald-500/5 translate-y-full group-hover/card:translate-y-0 transition-transform duration-700"></div>
+                            
+                            <div class="relative z-10">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <span class="px-3 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest border border-emerald-500/20">
+                                        @(project.ExpertiseDomain?.Name ?? "General Research")
+                                    </span>
+                                </div>
+                                <h4 class="text-lg font-bold text-white font-headline leading-tight mb-4 group-hover/card:text-emerald-400 transition-colors">@project.Title</h4>
+                                <p class="text-xs text-slate-500 leading-relaxed mb-10 line-clamp-3">@project.ExecutiveSummary</p>
+                            </div>
+                            
+                            <form asp-action="ExpressInterest" method="post" class="relative z-10">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="submissionId" value="@project.Id" />
+                                <button type="submit" class="w-full bg-slate-800/80 hover:bg-emerald-600 text-white text-[11px] font-black py-4 rounded-2xl transition-all flex items-center justify-center gap-3 uppercase tracking-widest shadow-xl"
+                                        onclick="return confirm('Initiate alignment protocol for @project.Title?');">
+                                    Analyze & Link
+                                    <span class="material-symbols-outlined text-[18px]">chevron_right</span>
+                                </button>
+                            </form>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        (function () {
+            const searchInput = document.getElementById('expertise-search');
+            const chips = Array.from(document.querySelectorAll('.expertise-chip'));
+            const selectedCount = document.getElementById('selected-count');
+            const checkboxes = Array.from(document.querySelectorAll('input[name="selectedAreaIds"]'));
+
+            function updateCount() {
+                const count = checkboxes.filter(x => x.checked).length;
+                selectedCount.textContent = String(count);
+                
+                if (count > 0) {
+                   selectedCount.classList.add('animate-bounce');
+                   setTimeout(() => selectedCount.classList.remove('animate-bounce'), 1000);
+                }
+            }
+
+            function filterChips(query) {
+                const normalized = (query || '').toLowerCase().trim();
+                chips.forEach(chip => {
+                    const label = chip.dataset.label || '';
+                    const visible = normalized.length === 0 || label.includes(normalized);
+                    chip.style.display = visible ? 'block' : 'none';
+                });
+            }
+
+            checkboxes.forEach(checkbox => checkbox.addEventListener('change', updateCount));
+            searchInput.addEventListener('input', event => filterChips(event.target.value));
+
+            updateCount();
+        })();
+    </script>
+}

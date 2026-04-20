@@ -1,0 +1,91 @@
+@{
+    var rawSuccess = TempData["SuccessMessage"]?.ToString();
+    var securitySaved = TempData["SecuritySaved"]?.ToString();
+    var finalSuccess = !string.IsNullOrEmpty(rawSuccess) ? rawSuccess : (!string.IsNullOrEmpty(securitySaved) ? securitySaved : null);
+    var error = TempData["Error"]?.ToString();
+}
+
+@if (!string.IsNullOrEmpty(finalSuccess) || !string.IsNullOrEmpty(error))
+{
+    <div id="unified-toast-container" class="fixed bottom-10 right-8 z-[99999] flex flex-col gap-4 antialiased pointer-events-none">
+        
+        @if (!string.IsNullOrEmpty(finalSuccess))
+        {
+            <div id="toast-success" class="flex items-center gap-4 p-5 rounded-[1.25rem] border border-emerald-500/20 bg-slate-900 shadow-[0_20px_40px_-15px_rgba(16,185,129,0.3)] animate-toast-slide pointer-events-auto w-[360px] relative overflow-hidden backdrop-blur-xl">
+                <div class="absolute inset-0 bg-emerald-500/5"></div>
+                <div class="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)] shrink-0 z-10">
+                    <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                </div>
+                <div class="flex-1 z-10">
+                    <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500 mb-1">System Success</h4>
+                    <p class="text-[13px] font-semibold text-slate-200 leading-tight">@finalSuccess</p>
+                </div>
+                <button onclick="dismissToast('toast-success')" class="text-slate-500 hover:text-white transition-colors z-10 p-2">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+                
+                <div class="absolute bottom-0 left-0 h-0.5 bg-emerald-500/20 w-full z-10">
+                    <div class="h-full bg-emerald-500 toast-progress"></div>
+                </div>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(error))
+        {
+            <div id="toast-error" class="flex items-center gap-4 p-5 rounded-[1.25rem] border border-red-500/30 bg-slate-900 shadow-[0_20px_40px_-15px_rgba(239,68,68,0.3)] animate-toast-slide pointer-events-auto w-[360px] relative overflow-hidden backdrop-blur-xl">
+                <div class="absolute inset-0 bg-red-500/5"></div>
+                <div class="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 shadow-[0_0_15px_rgba(239,68,68,0.3)] shrink-0 z-10">
+                    <span class="material-symbols-outlined text-[20px]">error</span>
+                </div>
+                <div class="flex-1 z-10">
+                    <h4 class="text-[10px] font-black uppercase tracking-[0.2em] text-red-500 mb-1">Operation Failed</h4>
+                    <p class="text-[13px] font-semibold text-slate-200 leading-tight">@error</p>
+                </div>
+                <button onclick="dismissToast('toast-error')" class="text-slate-500 hover:text-white transition-colors z-10 p-2">
+                    <span class="material-symbols-outlined text-[18px]">close</span>
+                </button>
+                
+                <div class="absolute bottom-0 left-0 h-0.5 bg-red-500/20 w-full z-10">
+                    <div class="h-full bg-red-500 toast-progress"></div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <style>
+        @@keyframes toastSlideIn {
+            0% { transform: translateX(120%) scale(0.9); opacity: 0; }
+            100% { transform: translateX(0) scale(1); opacity: 1; }
+        }
+        
+        @@keyframes toastProgress {
+            0% { width: 100%; }
+            100% { width: 0%; }
+        }
+
+        .animate-toast-slide {
+            animation: toastSlideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .toast-progress {
+            animation: toastProgress 5s linear forwards;
+        }
+    </style>
+
+    <script>
+        function dismissToast(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.transform = 'translateY(10px) scale(0.95)';
+                el.style.opacity = '0';
+                el.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+                setTimeout(() => el.remove(), 400);
+            }
+        }
+
+        setTimeout(() => {
+            const toasts = document.querySelectorAll('#unified-toast-container > div');
+            toasts.forEach(t => dismissToast(t.id));
+        }, 5000);
+    </script>
+}
